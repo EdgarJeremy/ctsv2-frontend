@@ -18,8 +18,8 @@ class FullHeader extends Component {
   }
 
   _onLogout() {
-    this.props.models.api.logout().then((data) => {
-      if (data.status) this.props.history.replace("/login");
+    this.props.authProvider.remove().then(() => {
+      this.props.history.replace("/login");
     });
   }
 
@@ -57,7 +57,7 @@ class FullHeader extends Component {
         </Nav>
         <AppAsideToggler className="d-md-down-none" />
         <AppAsideToggler className="d-lg-none" mobile />
-        <PasswordPopup 
+        <PasswordPopup
           {...this.props}
           open={this.state.passwordPopup}
           onCancel={() => this.setState({ passwordPopup: false })}

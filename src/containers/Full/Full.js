@@ -153,7 +153,7 @@ class Full extends Component {
       (this.state.ready) ?
         <div className="app">
           <AppHeader fixed>
-            <FullHeader userdata={this.state.userdata} pendingCount={this.state.pendingCount} models={this.state.models} {...this.props} />
+            <FullHeader userdata={this.state.userdata} pendingCount={this.state.pendingCount} {...this.props} />
           </AppHeader>
           <div className="app-body">
             <AppSidebar fixed display="lg">
@@ -170,7 +170,7 @@ class Full extends Component {
                   <Switch>
                     {routes.map((route, idx) => {
                       return route.component ? (<Route key={idx} path={route.path} exact={route.exact} name={route.name} render={props => (
-                        <route.component updateParent={this._updateParent.bind(this)} ref={(c) => this.current_child = c} models={this.state.models} _userdata={this.state.userdata} _apiReject={this._handleReject.bind(this)} {...props} />
+                        <route.component updateParent={this._updateParent.bind(this)} ref={(c) => this.current_child = c} models={this.props.models} _userdata={this.state.userdata} _apiReject={this._handleReject.bind(this)} {...props} />
                       )} />)
                         : (null);
                     },

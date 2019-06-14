@@ -25,14 +25,17 @@ export default class Pengurus extends React.Component {
     }
 
     _initialize() {
-        this.props.models.authenticated.pengguna_index(this.state.limit, this.state.offset, this.state.searchValue).then((data) => {
+        this.props.models.User.collection({
+            limit: this.state.limit,
+            offset: this.state.offset
+        }).then((data) => {
             this.setState({
-                pengguna: data.data.data, 
-                ready: true, 
-                totalpengguna: data.data.total,
-                totalPage: Math.ceil(data.data.total / this.state.limit)
+                pengguna: data.rows,
+                ready: true,
+                totalpengguna: data.count,
+                totalPage: Math.ceil(data.count / this.state.limit)
             });
-        }).catch(this.props._apiReject);
+        }).catch((err) => this.props._apiReject(err.response.data.errors.map((e) => e.msg)).join('\n'));
     }
 
     _onSearch(e) {
@@ -51,14 +54,14 @@ export default class Pengurus extends React.Component {
         this.setState({modalTambah: true});
     }
 
-    _openEdit(id_pengguna) {
-        this.setState({selected: id_pengguna, modalEdit: true});
+    _openEdit(user) {
+        this.setState({selected: user, modalEdit: true});
     }
 
-    _onDelete(id_pengguna, nama_pengguna) {
+    _onDelete(user) {
         swal({
             title: "Anda yakin?",
-            text: `Anda akan menghapus pengguna dengan nama ${nama_pengguna} dari sistem?`,
+            text: `Anda akan menghapus pengguna dengan nama ${user.name} dari sistem?`,
             buttons: [
                 "Tidak",
                 "Ya"
@@ -66,14 +69,11 @@ export default class Pengurus extends React.Component {
             icon: "warning"
         }).then((isConfirm) => {
             if(isConfirm) {
-                this.props.models.authenticated.pengguna_delete(id_pengguna).then((data) => {
-                    if(data.status === true) {
-                        swal("Konfirmasi", "Pengurus berhasil dihapus dari sistem", "success");
-                    } else {
-                        swal("Error", data.message || `Pengurus terdeteksi masih menghandle sebuah dokumen. Pastikan pengerjaan sudah selesai sebelum menghapus pengurusnya \n\n\n${data.error}`, "error");
-                    }
-                    this._initialize();
-                }).catch(this.props._apiReject);  
+                user.delete().then(() => {
+                    swal('Konfirmasi', `Pengurus dengan nama ${user.name} berhasil dihapus dari sistem`, 'success').then(this._initialize.bind(this));
+                }).catch((err) => {
+                    swal('Error', err.messsage, 'error').then(this._initialize.bind(this));
+                });
             }
         });
     }
@@ -124,19 +124,16 @@ export default class Pengurus extends React.Component {
                                             this.state.pengguna.map((item,i) => {
                                                 return(
                                                     <tr key={i}>
-                                                        <td>{item.nama_pengguna}</td>
+                                                        <td>{item.name}</td>
                                                         <td>{item.username}</td>
                                                         <td>{item.level}</td>
                                                         <td>{item.status ? "Aktif" : "Nonaktif"}</td>
                                                         <td>{item.deskripsi}</td>
                                                         <td>
-                                                            <button type="button" className="btn btn-outline-primary">
-                                                                <i className="fa fa-eye"></i>&nbsp;Detail
-                                                            </button>{' '}
-                                                            <button onClick={() => this._openEdit(item.id_pengguna)} type="button" className="btn btn-outline-info">
+                                                            <button onClick={() => this._openEdit(item)} type="button" className="btn btn-outline-info">
                                                                 <i className="fa fa-edit"></i>&nbsp;Edit
                                                             </button>{' '}
-                                                            <button onClick={() => this._onDelete(item.id_pengguna, item.nama_pengguna)} type="button" className="btn btn-outline-danger">
+                                                            <button onClick={() => this._onDelete(item)} type="button" className="btn btn-outline-danger">
                                                                 <i className="fa fa-trash"></i>&nbsp;Hapus
                                                             </button>
                                                         </td>
@@ -173,7 +170,7 @@ export default class Pengurus extends React.Component {
                 <PengurusPopup 
                     {...this.props} 
                     edit={true}
-                    id_pengguna={this.state.selected}
+                    user={this.state.selected}
                     open={this.state.modalEdit} 
                     toggle={() => this.setState({modalEdit: false})}
                     onSuccess={() => {

@@ -7,8 +7,7 @@ export default class PengurusPopup extends React.Component {
 
     state = {
         form_data: {
-            id_pengguna: "",
-            nama_pengguna: "",
+            name: "",
             username: "",
             password: "",
             level: "",
@@ -20,52 +19,63 @@ export default class PengurusPopup extends React.Component {
     _onSubmit(e) {
         e.preventDefault();
         const formData = helper.inspect(new FormData(e.target));
-        if(!this.props.edit) {
-            this.props.models.authenticated.pengguna_create(formData).then((data) => {
-                if(data.status) {
-                    swal("Data Tersimpan", "Pengurus baru berhasil disimpan", "success");
-                    this.props.onSuccess();
-                } else {
-                    swal("Terjadi Kesalahan", data.message, "error");
-                }
-            }).catch(this.props._apiReject);
+        if (!this.props.user) {
+            this.props.models.User.create(formData).then((user) => {
+                swal('Data Tersimpan', `Pengguna ${user.name} berhasil dibuat`, 'success').then(this.props.onSuccess);
+            }).catch((err) => {
+                this.props._apiReject(err.errors.errors.map((e) => e.msg).join('\n'));
+            });
         } else {
-            this.props.models.authenticated.pengguna_edit(formData).then((data) => {
-                if(data.status) {
-                    swal("Data Terupdate", "Data pengurus berhasil diupdate", "success");
-                    this.props.onSuccess();
-                } else {
-                    swal("Terjadi Kesalahan", data.message, "error");
-                }
-            })
+            this.props.user.update(formData).then((user) => {
+                swal('Data Terupdate', `Pengguna ${user.name} berhasil diupdate`, 'success').then(this.props.onSuccess);
+            }).catch((err) => {
+                this.props._apiReject(err.errors.errors.map((e) => e.msg).join('\n'));
+            });
         }
+        // if(!this.props.edit) {
+        //     this.props.models.authenticated.pengguna_create(formData).then((data) => {
+        //         if(data.status) {
+        //             swal("Data Tersimpan", "Pengurus baru berhasil disimpan", "success");
+        //             this.props.onSuccess();
+        //         } else {
+        //             swal("Terjadi Kesalahan", data.message, "error");
+        //         }
+        //     }).catch(this.props._apiReject);
+        // } else {
+        //     this.props.models.authenticated.pengguna_edit(formData).then((data) => {
+        //         if(data.status) {
+        //             swal("Data Terupdate", "Data pengurus berhasil diupdate", "success");
+        //             this.props.onSuccess();
+        //         } else {
+        //             swal("Terjadi Kesalahan", data.message, "error");
+        //         }
+        //     })
+        // }
     }
 
     componentWillReceiveProps(p) {
-        if(p.edit && p.open) {
-            this.props.models.authenticated.pengguna_show(p.id_pengguna).then((data) => {
-                let {form_data} = this.state;
-                form_data = data.data;
-                form_data.password = "";
-                this.setState({form_data});
-            }).catch(this.props._apiReject);
+        if (p.edit && p.open) {
+            let { form_data } = this.state;
+            form_data = p.user.toJSON();
+            form_data.status = form_data.status ? 1 : 0;
+            form_data.password = "";
+            this.setState({ form_data });
         }
     }
 
-    _onChange(e,v) {
-        let {name, value} = e.target;
-        let {form_data} = this.state;
+    _onChange(e, v) {
+        let { name, value } = e.target;
+        let { form_data } = this.state;
         form_data[name] = value;
-        this.setState({form_data});
+        this.setState({ form_data });
     }
 
     render() {
-        return(
+        return (
             <div className="animated fadeIn">
                 <Modal isOpen={this.props.open} className="modal-success">
                     <ModalHeader toggle={this.props.toggle}>{(this.props.edit) ? "Edit Pengurus" : "Tambah Pengurus Baru"}</ModalHeader>
                     <form onSubmit={this._onSubmit.bind(this)}>
-                        <input onChange={this._onChange.bind(this)} value={this.state.form_data.id_pengguna} type="hidden" name="id_pengguna" />
                         <ModalBody>
                             <FormGroup>
                                 <label>Nama Pengurus</label>
@@ -75,7 +85,7 @@ export default class PengurusPopup extends React.Component {
                                             <i className="fa fa-user"></i>
                                         </InputGroupText>
                                     </InputGroupAddon>
-                                    <Input onChange={this._onChange.bind(this)} value={this.state.form_data.nama_pengguna} type="text" name="nama_pengguna" placeholder="Nama Pengguna..." required />
+                                    <Input onChange={this._onChange.bind(this)} value={this.state.form_data.name} type="text" name="name" placeholder="Nama Pengguna..." required />
                                 </InputGroup>
                             </FormGroup>
                             <FormGroup>
