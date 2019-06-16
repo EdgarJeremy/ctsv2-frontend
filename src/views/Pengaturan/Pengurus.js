@@ -1,5 +1,5 @@
 import React from 'react';
-import { InputGroup, InputGroupAddon, Button, Input, Card, CardBody, CardHeader, Col, Pagination, PaginationItem, PaginationLink, Table, Row } from 'reactstrap';
+import { InputGroup, InputGroupAddon, Button, Input, Card, CardBody, CardHeader, Col, Pagination, PaginationItem, PaginationLink, Table, Row, Badge } from 'reactstrap';
 import Loadable from "react-loading-overlay";
 import PengurusPopup from "../../components/PengurusPopup";
 import swal from "sweetalert";
@@ -27,7 +27,8 @@ export default class Pengurus extends React.Component {
     _initialize() {
         this.props.models.User.collection({
             limit: this.state.limit,
-            offset: this.state.offset
+            offset: this.state.offset,
+            order: [['name', 'asc']]
         }).then((data) => {
             this.setState({
                 pengguna: data.rows,
@@ -35,27 +36,27 @@ export default class Pengurus extends React.Component {
                 totalpengguna: data.count,
                 totalPage: Math.ceil(data.count / this.state.limit)
             });
-        }).catch((err) => this.props._apiReject(err.response.data.errors.map((e) => e.msg)).join('\n'));
+        }).catch(this.props._apiReject);
     }
 
     _onSearch(e) {
-        this.setState({searchValue: e.target.value}, () => {
+        this.setState({ searchValue: e.target.value }, () => {
             this._initialize();
         });
     }
 
     _setPage(page) {
-        this.setState({page, offset: (page - 1) * this.state.limit}, () => {
+        this.setState({ page, offset: (page - 1) * this.state.limit }, () => {
             this._initialize();
         });
     }
 
     _openAdd() {
-        this.setState({modalTambah: true});
+        this.setState({ modalTambah: true });
     }
 
     _openEdit(user) {
-        this.setState({selected: user, modalEdit: true});
+        this.setState({ selected: user, modalEdit: true });
     }
 
     _onDelete(user) {
@@ -68,7 +69,7 @@ export default class Pengurus extends React.Component {
             ],
             icon: "warning"
         }).then((isConfirm) => {
-            if(isConfirm) {
+            if (isConfirm) {
                 user.delete().then(() => {
                     swal('Konfirmasi', `Pengurus dengan nama ${user.name} berhasil dihapus dari sistem`, 'success').then(this._initialize.bind(this));
                 }).catch((err) => {
@@ -80,111 +81,109 @@ export default class Pengurus extends React.Component {
 
     render() {
         let links = [];
-        for(let i = 0; i < this.state.totalPage;i++) {
+        for (let i = 0; i < this.state.totalPage; i++) {
             links.push(
-                <PaginationItem key={i} active={(this.state.page === i+1)}>
-                    <PaginationLink onClick={() => this._setPage(i+1)} tag="button">{i+1}</PaginationLink>
+                <PaginationItem key={i} active={(this.state.page === i + 1)}>
+                    <PaginationLink onClick={() => this._setPage(i + 1)} tag="button">{i + 1}</PaginationLink>
                 </PaginationItem>
             );
         }
-        return(
+        return (
             (this.state.ready) ?
-            <div className="animated fadeIn">
-                <Row>
-                    <Col xs="12" sm="12">
-                        <Card>
-                            <CardHeader>
-                                <i className="fa fa-align-justify"></i> Daftar pengurus
+                <div className="animated fadeIn">
+                    <Row>
+                        <Col xs="12" sm="12">
+                            <Card>
+                                <CardHeader>
+                                    <i className="fa fa-align-justify"></i> Daftar pengurus
                             </CardHeader>
-                            <CardBody>
-                                <InputGroup>
-                                    <InputGroupAddon addonType="prepend">
-                                        <Button type="button" color="primary"><i className="fa fa-search"></i> Search</Button>
-                                    </InputGroupAddon>
-                                    <Input type="text" value={this.state.searchValue} onChange={this._onSearch.bind(this)} id="input1-group2" name="input1-group2" placeholder="Nama pengurus.." />
-                                </InputGroup>
-                                <hr />
-                                <button onClick={this._openAdd.bind(this)} type="button" className="btn btn-success">
-                                    <i className="icons icon-user-follow"></i>&nbsp;Tambah Pengurus
+                                <CardBody>
+                                    <InputGroup>
+                                        <InputGroupAddon addonType="prepend">
+                                            <Button type="button" color="primary"><i className="fa fa-search"></i> Search</Button>
+                                        </InputGroupAddon>
+                                        <Input type="text" value={this.state.searchValue} onChange={this._onSearch.bind(this)} id="input1-group2" name="input1-group2" placeholder="Nama pengurus.." />
+                                    </InputGroup>
+                                    <hr />
+                                    <button onClick={this._openAdd.bind(this)} type="button" className="btn btn-success">
+                                        <i className="icons icon-user-follow"></i>&nbsp;Tambah Pengurus
                                 </button>
-                                <hr/>
-                                <Table responsive striped>
-                                    <thead>
-                                        <tr>
-                                            <th>Nama pengurus</th>
-                                            <th>Username</th>
-                                            <th>Level</th>
-                                            <th>Status</th>
-                                            <th>Deskripsi</th>
-                                            <th>Tindakan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {this.state.pengguna.length !== 0 ?
-                                            this.state.pengguna.map((item,i) => {
-                                                return(
-                                                    <tr key={i}>
-                                                        <td>{item.name}</td>
-                                                        <td>{item.username}</td>
-                                                        <td>{item.level}</td>
-                                                        <td>{item.status ? "Aktif" : "Nonaktif"}</td>
-                                                        <td>{item.deskripsi}</td>
-                                                        <td>
-                                                            <button onClick={() => this._openEdit(item)} type="button" className="btn btn-outline-info">
-                                                                <i className="fa fa-edit"></i>&nbsp;Edit
-                                                            </button>{' '}
-                                                            <button onClick={() => this._onDelete(item)} type="button" className="btn btn-outline-danger">
-                                                                <i className="fa fa-trash"></i>&nbsp;Hapus
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            }) :
+                                    <hr />
+                                    <Table responsive striped>
+                                        <thead>
                                             <tr>
-                                                <td colSpan="6" className="text-center">Tidak ada data yang ditemukan</td>
+                                                <th>Nama pengurus</th>
+                                                <th>Username</th>
+                                                <th>Level</th>
+                                                <th>Status</th>
+                                                <th>Tindakan</th>
                                             </tr>
-                                        }
-                                    </tbody>
-                                </Table>
+                                        </thead>
+                                        <tbody>
+                                            {this.state.pengguna.length !== 0 ?
+                                                this.state.pengguna.map((item, i) => {
+                                                    return (
+                                                        <tr key={i}>
+                                                            <td>{item.name}</td>
+                                                            <td>{item.username}</td>
+                                                            <td>{item.level}</td>
+                                                            <td>{item.status ? <Badge color="success">Aktif</Badge> : <Badge color="warning">Nonaktif</Badge>}</td>
+                                                            <td>
+                                                                <button onClick={() => this._openEdit(item)} type="button" className="btn btn-outline-info">
+                                                                    <i className="fa fa-edit"></i>&nbsp;Edit
+                                                                </button>{' '}
+                                                                <button onClick={() => this._onDelete(item)} type="button" className="btn btn-outline-danger">
+                                                                        <i className="fa fa-trash"></i>&nbsp;Hapus
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                }) :
+                                                <tr>
+                                                    <td colSpan="6" className="text-center">Tidak ada data yang ditemukan</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </Table>
 
-                                {(this.state.totalPage > 1) ? 
-                                    <Pagination>
-                                        <PaginationItem onClick={(this.state.page === 1) ? undefined : () => this._setPage(this.state.page - 1)} disabled={this.state.page === 1}><PaginationLink previous tag="button">Prev</PaginationLink></PaginationItem>
+                                    {(this.state.totalPage > 1) ?
+                                        <Pagination>
+                                            <PaginationItem onClick={(this.state.page === 1) ? undefined : () => this._setPage(this.state.page - 1)} disabled={this.state.page === 1}><PaginationLink previous tag="button">Prev</PaginationLink></PaginationItem>
                                             {links}
-                                        <PaginationItem onClick={(this.state.page === this.state.totalPage) ? undefined : () => this._setPage(this.state.page + 1)} disabled={this.state.page === this.state.totalPage} ><PaginationLink next tag="button">Next</PaginationLink></PaginationItem>
-                                    </Pagination>
-                                    : ""}
-                                
-                            </CardBody>
-                        </Card>
-                    </Col>
-                </Row>
-                <PengurusPopup 
-                    {...this.props} 
-                    open={this.state.modalTambah} 
-                    toggle={() => this.setState({modalTambah: false})}
-                    onSuccess={() => {
-                        this.setState({modalTambah: false});
-                        this._initialize();
-                    }} />
-                <PengurusPopup 
-                    {...this.props} 
-                    edit={true}
-                    user={this.state.selected}
-                    open={this.state.modalEdit} 
-                    toggle={() => this.setState({modalEdit: false})}
-                    onSuccess={() => {
-                        this.setState({modalEdit: false});
-                        this._initialize();
-                    }} />
-            </div> :
-            <Loadable
-                spinnerSize="100px"
-                className="loading-full"
-                active={true}
-                spinner
-                color="#000000"
-                text="Memuat data.."/>
+                                            <PaginationItem onClick={(this.state.page === this.state.totalPage) ? undefined : () => this._setPage(this.state.page + 1)} disabled={this.state.page === this.state.totalPage} ><PaginationLink next tag="button">Next</PaginationLink></PaginationItem>
+                                        </Pagination>
+                                        : ""}
+
+                                </CardBody>
+                            </Card>
+                        </Col>
+                    </Row>
+                    <PengurusPopup
+                        {...this.props}
+                        open={this.state.modalTambah}
+                        toggle={() => this.setState({ modalTambah: false })}
+                        onSuccess={() => {
+                            this.setState({ modalTambah: false });
+                            this._initialize();
+                        }} />
+                    <PengurusPopup
+                        {...this.props}
+                        edit={true}
+                        user={this.state.selected}
+                        open={this.state.modalEdit}
+                        toggle={() => this.setState({ modalEdit: false })}
+                        onSuccess={() => {
+                            this.setState({ modalEdit: false });
+                            this._initialize();
+                        }} />
+                </div> :
+                <Loadable
+                    spinnerSize="100px"
+                    className="loading-full"
+                    active={true}
+                    spinner
+                    color="#000000"
+                    text="Memuat data.." />
         )
     }
 

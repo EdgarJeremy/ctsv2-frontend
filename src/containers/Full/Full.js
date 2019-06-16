@@ -141,7 +141,13 @@ class Full extends Component {
   }
 
   _handleReject(e) {
-    swal("Terjadi Kesalahan", e.toString(), "error");
+    let msg = '';
+    if(e.errors) {
+      msg = e.errors.map((e) => e.msg).join('\n');
+    } else {
+      msg = e.message;
+    }
+    swal("Terjadi Kesalahan", msg, "error");
   }
 
   _updateParent() {

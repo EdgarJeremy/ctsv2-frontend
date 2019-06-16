@@ -11,8 +11,7 @@ export default class PengurusPopup extends React.Component {
             username: "",
             password: "",
             level: "",
-            status: "",
-            deskripsi: ""
+            status: ""
         }
     }
 
@@ -22,35 +21,12 @@ export default class PengurusPopup extends React.Component {
         if (!this.props.user) {
             this.props.models.User.create(formData).then((user) => {
                 swal('Data Tersimpan', `Pengguna ${user.name} berhasil dibuat`, 'success').then(this.props.onSuccess);
-            }).catch((err) => {
-                this.props._apiReject(err.errors.errors.map((e) => e.msg).join('\n'));
-            });
+            }).catch(this.props._apiReject);
         } else {
             this.props.user.update(formData).then((user) => {
                 swal('Data Terupdate', `Pengguna ${user.name} berhasil diupdate`, 'success').then(this.props.onSuccess);
-            }).catch((err) => {
-                this.props._apiReject(err.errors.errors.map((e) => e.msg).join('\n'));
-            });
+            }).catch(this.props._apiReject);
         }
-        // if(!this.props.edit) {
-        //     this.props.models.authenticated.pengguna_create(formData).then((data) => {
-        //         if(data.status) {
-        //             swal("Data Tersimpan", "Pengurus baru berhasil disimpan", "success");
-        //             this.props.onSuccess();
-        //         } else {
-        //             swal("Terjadi Kesalahan", data.message, "error");
-        //         }
-        //     }).catch(this.props._apiReject);
-        // } else {
-        //     this.props.models.authenticated.pengguna_edit(formData).then((data) => {
-        //         if(data.status) {
-        //             swal("Data Terupdate", "Data pengurus berhasil diupdate", "success");
-        //             this.props.onSuccess();
-        //         } else {
-        //             swal("Terjadi Kesalahan", data.message, "error");
-        //         }
-        //     })
-        // }
     }
 
     componentWillReceiveProps(p) {
@@ -142,17 +118,6 @@ export default class PengurusPopup extends React.Component {
                                         <option value="1">Aktif</option>
                                         <option value="0">Nonaktif</option>
                                     </Input>
-                                </InputGroup>
-                            </FormGroup>
-                            <FormGroup>
-                                <label>Deskripsi</label>
-                                <InputGroup>
-                                    <InputGroupAddon addonType="prepend">
-                                        <InputGroupText>
-                                            <i className="fa fa-quote-right"></i>
-                                        </InputGroupText>
-                                    </InputGroupAddon>
-                                    <Input onChange={this._onChange.bind(this)} value={this.state.form_data.deskripsi ? this.state.form_data.deskripsi : ""} type="textarea" name="deskripsi" placeholder="Tentang pengurus.." />
                                 </InputGroup>
                             </FormGroup>
                         </ModalBody>
