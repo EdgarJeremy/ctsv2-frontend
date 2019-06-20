@@ -28,6 +28,7 @@ export default class Tujuan extends React.Component {
 
     _initialize() {
         this.props.models.Purpose.collection({
+            attributes: ['id', 'name', 'form', 'description'],
             limit: this.state.limit,
             offset: this.state.offset,
             order: [['name', 'asc']]
@@ -199,7 +200,7 @@ export default class Tujuan extends React.Component {
                                                     )
                                                 }) :
                                                 <tr>
-                                                    <td colSpan="3" className="text-center">Tidak ada data yang ditemukan</td>
+                                                    <td colSpan="4" className="text-center">Tidak ada data yang ditemukan</td>
                                                 </tr>
                                             }
                                         </tbody>

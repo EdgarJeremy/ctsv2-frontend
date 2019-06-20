@@ -26,6 +26,7 @@ export default class Pengurus extends React.Component {
 
     _initialize() {
         this.props.models.User.collection({
+            attributes: ['id', 'name', 'username', 'level', 'status'],
             limit: this.state.limit,
             offset: this.state.offset,
             order: [['name', 'asc']]
@@ -140,7 +141,7 @@ export default class Pengurus extends React.Component {
                                                     )
                                                 }) :
                                                 <tr>
-                                                    <td colSpan="6" className="text-center">Tidak ada data yang ditemukan</td>
+                                                    <td colSpan="5" className="text-center">Tidak ada data yang ditemukan</td>
                                                 </tr>
                                             }
                                         </tbody>

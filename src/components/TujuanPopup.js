@@ -136,7 +136,7 @@ export default class TujuanPopup extends React.Component {
                                         const { form_data } = this.state;
                                         form_data.form.push({
                                             name: '',
-                                            type: ''
+                                            type: 'text'
                                         });
                                         this.setState({ form_data });
                                     }}>Tambah Input</Button>
