@@ -1,6 +1,6 @@
 import React from "react";
 import { Table, Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Input, InputGroup, InputGroupAddon, InputGroupText } from "reactstrap";
-import helper from "../services/helper";
+// import helper from "../services/helper";
 import swal from "sweetalert";
 
 export default class TujuanPopup extends React.Component {

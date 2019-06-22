@@ -28,7 +28,7 @@ import Loadable from "react-loading-overlay"
 import swal from "sweetalert";
 // import socket from "../../components/Socket";
 
-import sfx from "../../components/Sfx";
+// import sfx from "../../components/Sfx";
 import Chat from "../../components/Chat";
 
 class Full extends Component {

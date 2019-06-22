@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Nav, NavItem, NavLink, TabContent, TabPane } from 'reactstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import swal from "sweetalert";
+// import swal from "sweetalert";
 
 const propTypes = {
   children: PropTypes.node,

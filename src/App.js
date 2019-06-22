@@ -16,7 +16,7 @@ import './scss/style.css'
 // Containers
 import { Full } from './containers';
 // Pages
-import { Login, Page404, Page500, Register } from './views/Pages';
+import { Login } from './views/Pages';
 import Loadable from "react-loading-overlay";
 
 // import { renderRoutes } from 'react-router-config';
@@ -48,7 +48,7 @@ class App extends Component {
   }
 
   render() {
-    const { ready, models, authProvider, err } = this.state;
+    const { ready, models, authProvider } = this.state;
     return (
       ready ? <HashRouter>
         <Switch>
