@@ -82,7 +82,7 @@ export default class Alur extends React.Component {
     formData.purpose_id = this.state.selected_purpose.id;
     formData.users = this.state.new_step_users;
     this.props.models.Step.create(formData).then((step) => {
-      this._fetchSteps().then(() => {
+      this._fetchSteps(this.state.selected_purpose.id).then(() => {
         this.setState({ new_step_users: []}, () => {
           e.target.reset();
         });
@@ -101,13 +101,13 @@ export default class Alur extends React.Component {
     }));
     const pUpdate = steps.map((s, i) => s.update(updatedData[i]));
     Promise.all(pUpdate).then((res) => {
-      console.log(res);
+
     }).catch(this.props._apiReject);
   }
 
   _deleteStep(idx) {
     this.state.steps[idx].delete().then(() => {
-      this._fetchSteps();
+      this._fetchSteps(this.state.selected_purpose.id);
     }).catch(this.props._apiReject);
   }
 
