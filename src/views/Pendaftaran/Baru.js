@@ -12,12 +12,13 @@ import {
   Input
 } from "reactstrap";
 import Loadable from "react-loading-overlay";
+import swal from 'sweetalert';
 
 export default class Baru extends React.Component {
 
   state = {
     purposes: null,
-    selected_purpose: null,
+    selected_purpose: '',
     name: '',
     nik: '',
     formData: {},
@@ -48,7 +49,6 @@ export default class Baru extends React.Component {
       purpose.form.forEach((f) => {
         formData[f.name] = "";
       });
-      console.log(formData);
       this.setState({
         formData: {}
       }, () => {
@@ -59,7 +59,7 @@ export default class Baru extends React.Component {
       })
     } else {
       this.setState({
-        selected_purpose: null,
+        selected_purpose: '',
         formData: {}
       });
     }
@@ -87,6 +87,7 @@ export default class Baru extends React.Component {
 
   _onSave(e) {
     e.preventDefault();
+    e.persist();
     const data = {
       name: this.state.name,
       nik: this.state.nik,
@@ -95,7 +96,15 @@ export default class Baru extends React.Component {
     }
     this.props.models.Registration.create(data)
       .then((registration) => {
-        console.log(registration);
+        e.target.reset();
+        this.setState({
+          selected_purpose: '',
+          name: '',
+          nik: '',
+          formData: {},
+        }, () => {
+          swal('Data Terinput', 'Data berhasil disimpan di sistem', 'success');
+        });
       }).catch(this.props._apiReject);
   }
 

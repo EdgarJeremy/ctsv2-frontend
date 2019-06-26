@@ -26,7 +26,7 @@ export default class Pengurus extends React.Component {
 
     _initialize() {
         this.props.models.User.collection({
-            attributes: ['id', 'name', 'username', 'level', 'status'],
+            attributes: ['id', 'name', 'username', 'level', 'status', 'pending_user'],
             limit: this.state.limit,
             offset: this.state.offset,
             order: [['name', 'asc']]
@@ -117,6 +117,7 @@ export default class Pengurus extends React.Component {
                                                 <th>Username</th>
                                                 <th>Level</th>
                                                 <th>Status</th>
+                                                <th>Pending User</th>
                                                 <th>Tindakan</th>
                                             </tr>
                                         </thead>
@@ -129,6 +130,7 @@ export default class Pengurus extends React.Component {
                                                             <td>{item.username}</td>
                                                             <td>{item.level}</td>
                                                             <td>{item.status ? <Badge color="success">Aktif</Badge> : <Badge color="warning">Nonaktif</Badge>}</td>
+                                                            <td>{item.pending_user ? 'Pending User' : 'Regular'}</td>
                                                             <td>
                                                                 <button onClick={() => this._openEdit(item)} type="button" className="btn btn-outline-info">
                                                                     <i className="fa fa-edit"></i>&nbsp;Edit

@@ -36,7 +36,7 @@ export default class Alur extends React.Component {
         return this.setState({ purposes: data.rows });
       })
       .then(
-        this.props.models.User.collection.bind(this.props.models.User, { attributes: ['id', 'name', 'level'] })
+        this.props.models.User.collection.bind(this.props.models.User, { attributes: ['id', 'name', 'level', 'pending_user'] })
       )
       .then(data => {
         this.setState({ users: data.rows, ready: true });
@@ -167,14 +167,14 @@ export default class Alur extends React.Component {
                                 valueRenderer={option => {
                                   return (
                                     <span>
-                                      {option.name}
+                                      {option.name} ({option.pending_user ? 'Pending' : 'Regular'})
                                     </span>
                                   );
                                 }}
                                 optionRenderer={option => {
                                   return (
                                     <span>
-                                      {option.name} - {option.level}
+                                      {option.name} - {option.level} ({option.pending_user ? 'Pending' : 'Regular'})
                                     </span>
                                   );
                                 }}
@@ -235,14 +235,14 @@ export default class Alur extends React.Component {
                                       valueRenderer={option => {
                                         return (
                                           <span>
-                                            {option.name}
+                                            {option.name} ({option.pending_user ? 'Pending' : 'Regular'})
                                           </span>
                                         );
                                       }}
                                       optionRenderer={option => {
                                         return (
                                           <span>
-                                            {option.name} - {option.level}
+                                            {option.name} - {option.level} ({option.pending_user ? 'Pending' : 'Regular'})
                                           </span>
                                         );
                                       }}

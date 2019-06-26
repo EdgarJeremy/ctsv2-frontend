@@ -1,99 +1,160 @@
 import React from "react";
-import {Modal, ModalHeader, ModalBody, FormGroup, Input, ModalFooter, Button} from "reactstrap";
-import helper from "../services/helper";
-import swal from "sweetalert";
+import Loadable from "react-loading-overlay";
+import { Modal, ModalHeader, ModalBody, Collapse, ModalFooter, Button, Card, CardHeader, CardBody } from "reactstrap";
 
 export default class NextPopup extends React.Component {
 
-    state = {
-        done: false,
-        ready: false,
-        next: { resp_users: [] }
-    }
+  state = {
+    ready: false,
+    done: false,
+    next_card: false,
+    pending_card: false,
+    next_step_name: '',
+    pending_step_name: '',
+    next_users: [],
+    pending_users: []
+  }
 
-    _initialize(p = this.props) {
-        this.props.models.authenticated.pendaftaran_get_next_step(p.id_pendaftaran).then((next) => {
-            if(next.status) {
-                this.setState({ next: next.data, ready: true });
-            } else {
-                swal({
-                    title: "Konfirmasi Selesai",
-                    text: "Semua langkah pengerjaan sudah dilewati. Konfirmasi pendaftaran ini bahwa sudah selesai di step terakhir ini?",
-                    icon: "info",
-                    buttons: [
-                        "Tidak, tunda penyelesaian",
-                        "Ya, selesaikan"
-                    ]
-                }).then((isConfirm) => {
-                    if(isConfirm) {
-                        this.props.models.authenticated.pendaftaran_done(p.id_pendaftaran).then((data) => {
-                            if(data.status) {
-                                swal({
-                                    title: "Pendaftaran Selesai",
-                                    text: "Pendaftaran sudah diselesaikan",
-                                    icon: "success"
-                                }).then(() => {
-                                    this.props.updateParent();
-                                    this.props.onSuccess();
-                                });
-                            }
-                        }).catch(this.props._apiReject);
-                    } else {
-                        this.props.onCancel();
-                    }
-                    this.setState({ready: false});
-                });
-            }
-        }).catch(this.props._apiReject);
-    }
+  componentDidMount() {
+    this._prepare();
+  }
 
-    _onSubmit(e) {
-        e.preventDefault();
-        const data = helper.inspect(new FormData(e.target));
-        this.props.models.authenticated.pendaftaran_set_to_next_step(data).then((data) => {
-            this.setState({ready: false, done: true}, () => {
-                const s = this.props.onSuccess();
-                if(s) {
-                    s.then(() => this.setState({ done: false }));
-                } else {
-                    this.setState({ done: false });
-                }
-                this.props.updateParent();
-            });
-        }).catch(this.props._apiReject);
-    }
+  _prepare() {
+    const { registration: { purpose_id }, step_number } = this.props.track;
+    this.props.models.Step.collection({
+      attributes: ['id'],
+      where: {
+        purpose_id: purpose_id,
+        step: parseInt(step_number, 10) + 1
+      },
+      limit: 1
+    }).then((nextSteps) => {
+      if (nextSteps.count === 0) {
+        this.setState({
+          ready: true,
+          done: true
+        });
+      } else {
+        this._fetchStepData();
+      }
+    }).catch(this.props._apiReject);
+  }
 
-    componentWillReceiveProps(p) {
-        if(p.id_pendaftaran && p.open)
-            this._initialize(p);
-    }
+  _fetchStepData() {
+    const { registration: { purpose_id }, step_number } = this.props.track;
+    // fetch next step
+    this.props.models.Step.collection({
+      attributes: ['name'],
+      where: {
+        purpose_id: purpose_id,
+        step: parseInt(step_number, 10) + 1
+      },
+      limit: 1,
+      include: [{
+        attributes: ['name', 'level', 'pending_user'],
+        model: 'User',
+        where: {
+          pending_user: false
+        }
+      }]
+    }).then((data) => {
+      const step = data.rows[0];
+      this.setState({
+        next_step_name: step.name,
+        next_users: step.users
+      });
+    })
+    // fetch current (for pending) step
+    .then(this.props.models.Step.collection.bind(this.props.models.Step, {
+      attributes: ['name'],
+      where: {
+        purpose_id: purpose_id,
+        step: parseInt(step_number, 10)
+      },
+      limit: 1,
+      include: [{
+        attributes: ['name', 'level', 'pending_user'],
+        model: 'User',
+        where: {
+          pending_user: true
+        }
+      }]
+    }))
+    .then((data) => {
+      if(data.count > 0) {
+        const step = data.rows[0];
+        this.setState({
+          ready: true,
+          pending_step_name: step.name,
+          pending_users: step.users
+        }, () => {
+          console.log(this.state);
+        });
+      } else {
+        this.setState({
+          ready: true
+        }, () => {
+          console.log(this.state);
+        });
+      }
+    }).catch(this.props._apiReject);
+  }
 
-    render() {
-        return(
-            (this.state.ready) ?
-            <Modal isOpen={this.props.open && !this.state.done} className="modal-success">
-                <ModalHeader>Proses selanjutnya - {this.state.next.nama_step}</ModalHeader>
-                <form onSubmit={this._onSubmit.bind(this)}>
-                    <ModalBody>
-                        Pilih pengurus untuk step berikutnya <hr />
-                        <FormGroup>
-                            <Input type="select" name="id_pengguna">
-                                {this.state.next.resp_users.map((item,i) => {
-                                    return(
-                                        <option key={i} value={item.id_pengguna}>{item.nama_pengguna}</option>
-                                    )
-                                })}
-                            </Input>
-                            {(this.props.id_pendaftaran) ? <Input type="hidden" name="id_pendaftaran" value={this.props.id_pendaftaran} /> : ""}
-                        </FormGroup>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="success" disabled={!this.state.ready}>Lanjutkan</Button>{' '}
-                        <Button color="secondary" onClick={() => { this.props.onCancel(); this.setState({ready: false})}}>Tunda</Button>
-                    </ModalFooter>
-                </form>
-            </Modal> : ""
-        )
-    }
+  render() {
+    return (
+      <Modal isOpen={true} className="modal-success">
+        <ModalHeader>Proses selanjutnya</ModalHeader>
+        {this.state.ready ? (
+          this.state.done ? (
+            <div>
+              <h4>Proses sudah sampai pada step terakhir. Selesaikan?</h4>
+              <Button block>SELESAIKAN</Button>
+            </div>
+          ) : (
+              <ModalBody>
+                <Card style={{ margin: 0 }}>
+                  <CardHeader style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => {
+                    this.setState({ pending_card: false, next_card: !this.state.next_card });
+                  }}>
+                    <h5 style={{ margin: 0 }}>Lanjutkan ke pengurus step berikutnya</h5>
+                  </CardHeader>
+                  <Collapse isOpen={this.state.next_card}>
+                    <CardBody>
+                    </CardBody>
+                  </Collapse>
+                </Card>
+                <hr style={{ marginTop: 10, marginBottom: 10 }} />
+                <p style={{ textAlign: 'center', margin: 0 }}><b>ATAU</b></p>
+                <hr style={{ marginTop: 10, marginBottom: 10 }} />
+                <Card>
+                  <CardHeader style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => {
+                    this.setState({ next_card: false, pending_card: !this.state.pending_card });
+                  }}>
+                    <h5 style={{ margin: 0 }}>Tunda ke pengurus step saat ini</h5>
+                  </CardHeader>
+                  <Collapse isOpen={this.state.pending_card}>
+                    <CardBody>
+                    </CardBody>
+                  </Collapse>
+                </Card>
+              </ModalBody>
+            )
+
+        ) : (
+            <Loadable
+              spinnerSize="100px"
+              style={{ height: 200 }}
+              background="#ffffff"
+              active={true}
+              spinner
+              color="#000000"
+              text="Menyiapkan.." />
+          )}
+        <ModalFooter>
+          <Button color="danger" onClick={this.props.onCancel} block>BATAL</Button>
+        </ModalFooter>
+      </Modal>
+    )
+  }
 
 }
