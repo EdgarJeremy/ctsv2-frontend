@@ -79,7 +79,12 @@ export default class NextPopup extends React.Component {
           attributes: ['id', 'name', 'level', 'pending_user'],
           model: 'User',
           where: {
-            pending_user: true
+            pending_user: {
+              $eq: true
+            },
+            id: {
+              $ne: this.props._userdata.id
+            }
           }
         }]
       }))
@@ -105,9 +110,6 @@ export default class NextPopup extends React.Component {
     this.props.models.Track.create({
       description: '',
       step_id: next_step.id,
-      step_name: next_step.name,
-      step_number: next_step.step,
-      step_description: next_step.description,
       registration_id: registration.id,
       user_id: selected_next_user
     }).then((newTrack) => {
@@ -117,14 +119,44 @@ export default class NextPopup extends React.Component {
         user_id: selected_next_user
       }).then((r) => {
         swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
-          this.props.onCancel();
-        })
+          this.props.onSuccess();
+        });
       });
     }).catch(this.props._apiReject);
   }
 
   _onPending() {
+    const { selected_pending_user } = this.state;
+    const { registration } = this.props;
+    this.props.models.Track.create({
+      description: '',
+      step_id: registration.step.id,
+      registration_id: registration.id,
+      user_id: selected_pending_user
+    }).then((newTrack) => {
+      return registration.update({
+        ...registration.toJSON(),
+        step_id: registration.step.id,
+        user_id: selected_pending_user
+      }).then((r) => {
+        swal('Berhasil', 'Pendaftaran berhasil ditunda', 'success').then(() => {
+          this.props.onSuccess();
+        });
+      });
+    }).catch(this.props._apiReject);
+  }
 
+  _onDone() {
+    const { registration } = this.props;
+    registration.update({
+      ...registration.toJSON(),
+      step_id: null,
+      user_id: null
+    }).then((r) => {
+      swal('Berhasil', 'Pendaftaran berhasil diselesaikan', 'success').then(() => {
+        this.props.onSuccess();
+      });
+    }).catch(this.props._apiReject);
   }
 
   render() {
@@ -133,9 +165,12 @@ export default class NextPopup extends React.Component {
         <ModalHeader>Proses selanjutnya</ModalHeader>
         {this.state.ready ? (
           this.state.done ? (
-            <div>
-              <h4>Proses sudah sampai pada step terakhir. Selesaikan?</h4>
-              <Button block>SELESAIKAN</Button>
+            <div style={{
+              padding: 15,
+              textAlign: 'center'
+             }}>
+              <h5>Proses sudah sampai pada step terakhir. Selesaikan?</h5><hr />
+              <Button onClick={this._onDone.bind(this)} color="success" block>SELESAIKAN</Button>
             </div>
           ) : (
               <ModalBody>
@@ -156,7 +191,7 @@ export default class NextPopup extends React.Component {
                           <option key={i} value={u.id}>{u.name} - {u.level}</option>
                         ))}
                       </Input><br />
-                      <Button color="success" onClick={this._onContinue.bind(this)} block><i className="fa fa-send"></i> KIRIM</Button>
+                      <Button disabled={!this.state.selected_next_user} color="success" onClick={this._onContinue.bind(this)} block><i className="fa fa-send"></i> KIRIM</Button>
                     </CardBody>
                   </Collapse>
                 </Card>
@@ -181,7 +216,8 @@ export default class NextPopup extends React.Component {
                             {this.state.pending_users.map((u, i) => (
                               <option key={i} value={u.id}>{u.name}</option>
                             ))}
-                          </Input>
+                          </Input><br />
+                          <Button disabled={!this.state.selected_pending_user} color="success" onClick={this._onPending.bind(this)} block><i className="fa fa-arrow-down"></i> TUNDA</Button>
                         </div>
                       ) : (
                           <h6>Tidak ada pengurus dokumen pending yang ditugaskan di step ini</h6>

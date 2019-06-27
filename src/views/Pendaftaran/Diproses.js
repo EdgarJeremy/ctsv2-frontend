@@ -1,5 +1,5 @@
 import React from 'react';
-import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Table, Row } from 'reactstrap';
+import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Table, Row, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import Loadable from "react-loading-overlay";
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
@@ -15,7 +15,8 @@ export default class Diproses extends React.Component {
     formData: [],
     limit: 10,
     offset: 0,
-    total: 0,
+    total_page: 0,
+    page: 1,
     openNext: false,
     selected_registration: null
   }
@@ -41,11 +42,11 @@ export default class Diproses extends React.Component {
   //     });
   // }
 
-  // _setPage(page) {
-  //     this.setState({ page, offset: (page - 1) * this.state.limit }, () => {
-  //         this._initialize();
-  //     });
-  // }
+  _setPage(page) {
+    this.setState({ page, offset: (page - 1) * this.state.limit }, () => {
+      this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+    });
+  }
 
   // _openNext(id_pendaftaran) {
   //     this.setState({ selectedNext: id_pendaftaran, modalNext: true });
@@ -106,24 +107,25 @@ export default class Diproses extends React.Component {
         model: 'User',
         attributes: ['id', 'name', 'level']
       }],
+      order: [['created_at', 'desc']]
     }).then((data) => {
       this.setState({
         registrations: data.rows,
-        total: data.count,
+        total_page: Math.ceil(data.count / this.state.limit),
       });
     });
   }
 
   render() {
     const selected_purpose = this.state.purposes[this.state.selected_purpose];
-    // let links = [];
-    // for (let i = 0; i < this.state.totalPage; i++) {
-    //     links.push(
-    //         <PaginationItem key={i} active={(this.state.page === i + 1)}>
-    //             <PaginationLink onClick={() => this._setPage(i + 1)} tag="button">{i + 1}</PaginationLink>
-    //         </PaginationItem>
-    //     );
-    // }
+    let links = [];
+    for (let i = 0; i < this.state.total_page; i++) {
+      links.push(
+        <PaginationItem key={i} active={(this.state.page === i + 1)}>
+          <PaginationLink onClick={() => this._setPage(i + 1)} tag="button">{i + 1}</PaginationLink>
+        </PaginationItem>
+      );
+    }
     return (
       (this.state.ready) ?
         <div className="animated fadeIn">
@@ -229,13 +231,13 @@ export default class Diproses extends React.Component {
                       </Table>
                     )
                   }
-                  {/* {(this.state.totalPage > 1) ?
-                                        <Pagination>
-                                            <PaginationItem onClick={(this.state.page === 1) ? undefined : () => this._setPage(this.state.page - 1)} disabled={this.state.page === 1}><PaginationLink previous tag="button">Prev</PaginationLink></PaginationItem>
-                                            {links}
-                                            <PaginationItem onClick={(this.state.page === this.state.totalPage) ? undefined : () => this._setPage(this.state.page + 1)} disabled={this.state.page === this.state.totalPage} ><PaginationLink next tag="button">Next</PaginationLink></PaginationItem>
-                                        </Pagination>
-                                        : ""} */}
+                  {(this.state.total_page > 1) ?
+                    <Pagination>
+                      <PaginationItem onClick={(this.state.page === 1) ? undefined : () => this._setPage(this.state.page - 1)} disabled={this.state.page === 1}><PaginationLink previous tag="button">Prev</PaginationLink></PaginationItem>
+                      {links}
+                      <PaginationItem onClick={(this.state.page === this.state.total_page) ? undefined : () => this._setPage(this.state.page + 1)} disabled={this.state.page === this.state.total_page} ><PaginationLink next tag="button">Next</PaginationLink></PaginationItem>
+                    </Pagination>
+                    : ""}
 
                 </CardBody>
               </Card>
@@ -243,6 +245,10 @@ export default class Diproses extends React.Component {
           </Row>
           {this.state.openNext && <NextPopup
             {...this.props}
+            onSuccess={() => {
+              this.setState({ openNext: false });
+              this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+            }}
             onCancel={() => this.setState({ openNext: false })}
             registration={this.state.selected_registration} />}
         </div > :
