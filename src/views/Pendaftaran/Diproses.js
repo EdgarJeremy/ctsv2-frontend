@@ -10,14 +10,14 @@ export default class Diproses extends React.Component {
     ready: false,
     purposes: [],
     selected_purpose: '',
-    tracks: [],
+    registrations: [],
     formInput: null,
     formData: [],
     limit: 10,
     offset: 0,
     total: 0,
     openNext: false,
-    selected_track: null
+    selected_registration: null
   }
 
   componentWillMount() {
@@ -78,7 +78,7 @@ export default class Diproses extends React.Component {
   _onChangePurpose(e) {
     const { value: idx } = e.target;
     if (idx) {
-      this._fetchTracks(this.state.purposes[idx].id).then(() => {
+      this._fetchRegistrations(this.state.purposes[idx].id).then(() => {
         this.setState({
           selected_purpose: idx
         });
@@ -91,24 +91,24 @@ export default class Diproses extends React.Component {
     }
   }
 
-  _fetchTracks(purpose_id) {
-    return this.props.models.Track.collection({
-      attributes: ['id', 'step_name', 'step_number', 'step_description', 'step_id'],
+  _fetchRegistrations(purpose_id) {
+    return this.props.models.Registration.collection({
+      attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id'],
       limit: this.state.limit,
       offset: this.state.offset,
+      where: {
+        purpose_id: purpose_id
+      },
       include: [{
-        model: 'Registration',
-        attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id'],
-        where: {
-          purpose_id: purpose_id
-        }
+        model: 'Step',
+        attributes: ['id', 'name', 'step', 'description'],
       }, {
         model: 'User',
         attributes: ['id', 'name', 'level']
-      }]
+      }],
     }).then((data) => {
       this.setState({
-        tracks: data.rows,
+        registrations: data.rows,
         total: data.count,
       });
     });
@@ -196,27 +196,27 @@ export default class Diproses extends React.Component {
                         </thead>
                         <tbody>
                           {
-                            this.state.tracks.map((t, i) => (
+                            this.state.registrations.map((t, i) => (
                               <tr key={i}>
                                 <td>{i + 1}</td>
-                                <td>{t.registration.name.toUpperCase()}</td>
-                                <td>{t.registration.nik}</td>
+                                <td>{t.name.toUpperCase()}</td>
+                                <td>{t.nik}</td>
                                 <td>{t.user.name}</td>
-                                <td><Badge color="success">{t.step_name}</Badge></td>
+                                <td><Badge color="success">{t.step.name}</Badge></td>
 
                                 {
                                   selected_purpose.form.map(({ name }, j) => (
-                                    <td key={j}>{t.registration.data[name]}</td>
+                                    <td key={j}>{t.data[name]}</td>
                                   ))
                                 }
                                 <td>
                                   <button type="button" className="btn btn-outline-primary">
                                     <i className="fa fa-eye"></i>&nbsp;Detail
                                                                 </button>{' '}
-                                  <button onClick={() => {
+                                  <button disabled={this.props._userdata.id !== t.user.id} onClick={() => {
                                     this.setState({
                                       openNext: true,
-                                      selected_track: this.state.tracks[i]
+                                      selected_registration: this.state.registrations[i]
                                     })
                                   }} type="button" className="btn btn-outline-success">
                                     <i className="fa fa-mail-forward"></i>&nbsp;Proses
@@ -244,7 +244,7 @@ export default class Diproses extends React.Component {
           {this.state.openNext && <NextPopup
             {...this.props}
             onCancel={() => this.setState({ openNext: false })}
-            track={this.state.selected_track} />}
+            registration={this.state.selected_registration} />}
         </div > :
         <Loadable
           spinnerSize="100px"

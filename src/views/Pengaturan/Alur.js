@@ -17,6 +17,7 @@ import Loadable from "react-loading-overlay";
 import "react-select/dist/react-select.css";
 import Select from "react-select";
 import helper from '../../services/helper';
+import swal from "sweetalert";
 
 export default class Alur extends React.Component {
   state = {
@@ -46,8 +47,9 @@ export default class Alur extends React.Component {
 
   _fetchSteps(purpose_id) {
     return this.props.models.Step.collection({
+      attributes: ['id', 'name', 'step', 'purpose_id'],
       where: { purpose_id },
-      include: [{ model: 'User' }]
+      include: [{ attributes: ['id', 'name', 'level', 'pending_user'], model: 'User' }]
     }).then(data => {
       this.setState({
         steps: data.rows,
@@ -101,7 +103,7 @@ export default class Alur extends React.Component {
     }));
     const pUpdate = steps.map((s, i) => s.update(updatedData[i]));
     Promise.all(pUpdate).then((res) => {
-
+      swal('Berhasil diupdate', 'Data step berhasil diupdate', 'success');
     }).catch(this.props._apiReject);
   }
 

@@ -1,6 +1,7 @@
 import React from "react";
 import Loadable from "react-loading-overlay";
-import { Modal, ModalHeader, ModalBody, Collapse, ModalFooter, Button, Card, CardHeader, CardBody } from "reactstrap";
+import { Modal, ModalHeader, ModalBody, Collapse, ModalFooter, Button, Card, CardHeader, CardBody, Input } from "reactstrap";
+import swal from "sweetalert";
 
 export default class NextPopup extends React.Component {
 
@@ -9,10 +10,12 @@ export default class NextPopup extends React.Component {
     done: false,
     next_card: false,
     pending_card: false,
-    next_step_name: '',
-    pending_step_name: '',
+    next_step: null,
+    pending_step: null,
     next_users: [],
-    pending_users: []
+    selected_next_user: '',
+    pending_users: [],
+    selected_pending_user: ''
   }
 
   componentDidMount() {
@@ -20,12 +23,12 @@ export default class NextPopup extends React.Component {
   }
 
   _prepare() {
-    const { registration: { purpose_id }, step_number } = this.props.track;
+    const { registration: { purpose_id, step: { step } } } = this.props;
     this.props.models.Step.collection({
       attributes: ['id'],
       where: {
         purpose_id: purpose_id,
-        step: parseInt(step_number, 10) + 1
+        step: parseInt(step, 10) + 1
       },
       limit: 1
     }).then((nextSteps) => {
@@ -41,17 +44,17 @@ export default class NextPopup extends React.Component {
   }
 
   _fetchStepData() {
-    const { registration: { purpose_id }, step_number } = this.props.track;
+    const { registration: { purpose_id, step: { step } } } = this.props;
     // fetch next step
     this.props.models.Step.collection({
-      attributes: ['name'],
+      attributes: ['name', 'step', 'description'],
       where: {
         purpose_id: purpose_id,
-        step: parseInt(step_number, 10) + 1
+        step: parseInt(step, 10) + 1
       },
       limit: 1,
       include: [{
-        attributes: ['name', 'level', 'pending_user'],
+        attributes: ['id', 'name', 'level', 'pending_user'],
         model: 'User',
         where: {
           pending_user: false
@@ -60,44 +63,68 @@ export default class NextPopup extends React.Component {
     }).then((data) => {
       const step = data.rows[0];
       this.setState({
-        next_step_name: step.name,
+        next_step: step,
         next_users: step.users
       });
     })
-    // fetch current (for pending) step
-    .then(this.props.models.Step.collection.bind(this.props.models.Step, {
-      attributes: ['name'],
-      where: {
-        purpose_id: purpose_id,
-        step: parseInt(step_number, 10)
-      },
-      limit: 1,
-      include: [{
-        attributes: ['name', 'level', 'pending_user'],
-        model: 'User',
+      // fetch current (for pending) step
+      .then(this.props.models.Step.collection.bind(this.props.models.Step, {
+        attributes: ['name', 'step', 'description'],
         where: {
-          pending_user: true
+          purpose_id: purpose_id,
+          step: parseInt(step, 10)
+        },
+        limit: 1,
+        include: [{
+          attributes: ['id', 'name', 'level', 'pending_user'],
+          model: 'User',
+          where: {
+            pending_user: true
+          }
+        }]
+      }))
+      .then((data) => {
+        if (data.count > 0) {
+          const step = data.rows[0];
+          this.setState({
+            ready: true,
+            pending_step: step,
+            pending_users: step.users
+          });
+        } else {
+          this.setState({
+            ready: true
+          });
         }
-      }]
-    }))
-    .then((data) => {
-      if(data.count > 0) {
-        const step = data.rows[0];
-        this.setState({
-          ready: true,
-          pending_step_name: step.name,
-          pending_users: step.users
-        }, () => {
-          console.log(this.state);
-        });
-      } else {
-        this.setState({
-          ready: true
-        }, () => {
-          console.log(this.state);
-        });
-      }
+      }).catch(this.props._apiReject);
+  }
+
+  _onContinue() {
+    const { next_step, selected_next_user } = this.state;
+    const { registration } = this.props;
+    this.props.models.Track.create({
+      description: '',
+      step_id: next_step.id,
+      step_name: next_step.name,
+      step_number: next_step.step,
+      step_description: next_step.description,
+      registration_id: registration.id,
+      user_id: selected_next_user
+    }).then((newTrack) => {
+      return registration.update({
+        ...registration.toJSON(),
+        step_id: next_step.id,
+        user_id: selected_next_user
+      }).then((r) => {
+        swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
+          this.props.onCancel();
+        })
+      });
     }).catch(this.props._apiReject);
+  }
+
+  _onPending() {
+
   }
 
   render() {
@@ -120,6 +147,16 @@ export default class NextPopup extends React.Component {
                   </CardHeader>
                   <Collapse isOpen={this.state.next_card}>
                     <CardBody>
+                      <p>Pilih pengurus untuk step: {this.state.next_step.name}</p>
+                      <Input type="select" onChange={(e) => {
+                        this.setState({ selected_next_user: e.target.value });
+                      }} value={this.state.selected_next_user}>
+                        <option value=""></option>
+                        {this.state.next_users.map((u, i) => (
+                          <option key={i} value={u.id}>{u.name} - {u.level}</option>
+                        ))}
+                      </Input><br />
+                      <Button color="success" onClick={this._onContinue.bind(this)} block><i className="fa fa-send"></i> KIRIM</Button>
                     </CardBody>
                   </Collapse>
                 </Card>
@@ -134,6 +171,21 @@ export default class NextPopup extends React.Component {
                   </CardHeader>
                   <Collapse isOpen={this.state.pending_card}>
                     <CardBody>
+                      {this.state.pending_users.length ? (
+                        <div>
+                          <p>Tunda ke pengurus step: {this.state.pending_step.name}</p>
+                          <Input type="select" onChange={(e) => {
+                            this.setState({ selected_pending_user: e.target.value });
+                          }} value={this.state.selected_pending_user}>
+                            <option value=""></option>
+                            {this.state.pending_users.map((u, i) => (
+                              <option key={i} value={u.id}>{u.name}</option>
+                            ))}
+                          </Input>
+                        </div>
+                      ) : (
+                          <h6>Tidak ada pengurus dokumen pending yang ditugaskan di step ini</h6>
+                        )}
                     </CardBody>
                   </Collapse>
                 </Card>
