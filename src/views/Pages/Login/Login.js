@@ -77,7 +77,7 @@ class Login extends Component {
                       </Alert>
                     </CardBody>
                   </Card>
-                  <Card className="text-white bg-primary py-5 d-md-down-none" style={{ width: 44 + '%' }}>
+                  <Card className="text-white py-5 d-md-down-none" style={{ width: 44 + '%', backgroundColor: '#3a4248' }}>
                     <CardBody className="text-center">
                       <div>
                         <h2>Control Tracking System</h2><hr />

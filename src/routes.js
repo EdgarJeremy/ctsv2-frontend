@@ -7,6 +7,7 @@ import Selesai from "./views/Pendaftaran/Selesai";
 import Pengurus from "./views/Pengaturan/Pengurus";
 import Tujuan from "./views/Pengaturan/Tujuan";
 import Alur from "./views/Pengaturan/Alur";
+import Api from "./views/Pengaturan/Api";
 
 // https://github.com/ReactTraining/react-router/tree/master/packages/react-router-config
 const routes = [
@@ -22,6 +23,7 @@ const routes = [
   { path: "/pengaturan/pengurus", name: "Pengurus", component: Pengurus },
   { path: "/pengaturan/tujuan", name: "Tujuan Pendaftaran", component: Tujuan },
   { path: "/pengaturan/alur", name: "Alur Pendaftaran", component: Alur },
+  { path: "/pengaturan/api", name: "Sumber Eksternal", component: Api }
 ];
 
 export default routes;

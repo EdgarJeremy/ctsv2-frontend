@@ -46,16 +46,6 @@ function navigation(userdata) {
             attributes: {},
           },
         },
-        {
-          name: 'Notifikasi',
-          url: '/pengaturan/notifikasi',
-          icon: 'icon-refresh',
-        },
-        {
-          name: 'Tema',
-          url: '/pengaturan/tema',
-          icon: 'icon-folder-alt',
-        }
       ];
       break;
     case "Loket":
@@ -90,16 +80,6 @@ function navigation(userdata) {
             element: '',
             attributes: {},
           },
-        },
-        {
-          name: 'Notifikasi',
-          url: '/pengaturan/notifikasi',
-          icon: 'icon-refresh',
-        },
-        {
-          name: 'Tema',
-          url: '/pengaturan/tema',
-          icon: 'icon-folder-alt',
         }
       ];
       break;
@@ -157,13 +137,13 @@ function navigation(userdata) {
           icon: 'icon-link',
         },
         {
-          name: 'Notifikasi',
-          url: '/pengaturan/notifikasi',
+          name: 'Sumber Eksternal',
+          url: '/pengaturan/api',
           icon: 'icon-refresh',
         },
         {
-          name: 'Tema',
-          url: '/pengaturan/tema',
+          name: 'Info Aplikasi',
+          url: '/pengaturan/info',
           icon: 'icon-folder-alt',
         }
       ];
@@ -210,16 +190,6 @@ function navigation(userdata) {
             element: '',
             attributes: {},
           },
-        },
-        {
-          name: 'Notifikasi',
-          url: '/pengaturan/notifikasi',
-          icon: 'icon-refresh',
-        },
-        {
-          name: 'Tema',
-          url: '/pengaturan/tema',
-          icon: 'icon-folder-alt',
         }
       ];
       break;
@@ -265,16 +235,6 @@ function navigation(userdata) {
             element: '',
             attributes: {},
           },
-        },
-        {
-          name: 'Notifikasi',
-          url: '/pengaturan/notifikasi',
-          icon: 'icon-refresh',
-        },
-        {
-          name: 'Tema',
-          url: '/pengaturan/tema',
-          icon: 'icon-folder-alt',
         }
       ];
       break;
@@ -320,16 +280,6 @@ function navigation(userdata) {
             element: '',
             attributes: {},
           },
-        },
-        {
-          name: 'Notifikasi',
-          url: '/pengaturan/notifikasi',
-          icon: 'icon-refresh',
-        },
-        {
-          name: 'Tema',
-          url: '/pengaturan/tema',
-          icon: 'icon-folder-alt',
         }
       ];
       break;

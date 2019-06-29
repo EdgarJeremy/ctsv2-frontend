@@ -4,7 +4,7 @@ import Loadable from "react-loading-overlay";
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
 
-export default class Diproses extends React.Component {
+export default class Masuk extends React.Component {
 
   state = {
     ready: false,
@@ -98,6 +98,9 @@ export default class Diproses extends React.Component {
       limit: this.state.limit,
       offset: this.state.offset,
       where: {
+        step_id: {
+          $ne: null
+        },
         user_id: this.props._userdata.id,
         purpose_id: purpose_id
       },
@@ -134,7 +137,7 @@ export default class Diproses extends React.Component {
             <Col xs="12" sm="12">
               <Card>
                 <CardHeader>
-                  <i className="fa fa-align-justify"></i> Daftar pendaftaran dalam proses
+                  <i className="fa fa-align-justify"></i> Daftar pendaftaran yang masuk
                             </CardHeader>
                 <CardBody>
                   <InputGroup>
@@ -187,8 +190,8 @@ export default class Diproses extends React.Component {
                             <th>#</th>
                             <th>NAMA PEMOHON</th>
                             <th>NIK PEMOHON</th>
-                            <th>PENGURUS</th>
-                            <th>STEP</th>
+                            <th>PENGURUS SAAT INI</th>
+                            <th>STEP SAAT INI</th>
                             {
                               selected_purpose.form.map(({ name }, i) => (
                                 <th key={i}>{name.toUpperCase()}</th>

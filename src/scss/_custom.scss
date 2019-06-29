@@ -249,7 +249,7 @@
                     color: #ffffff;
                     box-shadow: 0 0 18px 16px #fff;
                     &:active {
-                        
+
                     }
                 }
                 i.icon.icon-speech {
@@ -265,7 +265,7 @@
                         border-top-right-radius: 0;
                         border-bottom-right-radius: 0;
                         background-color: #2f353a;
-                        cursor: pointer;    
+                        cursor: pointer;
                         .chat-control-status {
                             &.badge-success {
                                 background-color: transparent !important;
@@ -415,6 +415,7 @@
         position: relative;
         padding-bottom: 62px;
         .main-container {
+            background-color: #ffffff;
             padding: 0px;
             height: 100%;
             overflow-x: hidden;
@@ -452,3 +453,35 @@ footer {
     margin: 0 !important;
     padding: 20px !important;
 }
+
+.step-desc {
+  p {
+    margin: 0;
+  }
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style-position: inside;
+  }
+}
+
+// .sidebar {
+//   background-color: #ecf0f1;
+//   .nav-title {
+//     color: #34495e;
+//   }
+//   .nav-link {
+//     color: #34495e;
+//   }
+//   .nav-link:hover {
+//     background-color: #3a4248;
+//   }
+//   button.sidebar-minimizer {
+//     border-top: 1px solid #999999;
+//     background-color: transparent;
+//     color: #3a4248;
+//     &:hover {
+//       background-color: #3a4248;
+//     }
+//   }
+// }

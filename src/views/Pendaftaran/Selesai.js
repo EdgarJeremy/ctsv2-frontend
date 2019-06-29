@@ -1,130 +1,151 @@
 import React from 'react';
-import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Pagination, PaginationItem, PaginationLink, Table, Row } from 'reactstrap';
-import { AppSwitch } from '@coreui/react';
+import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Table, Row, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import Loadable from "react-loading-overlay";
 import NextPopup from '../../components/NextPopup';
-import DetailPopup from "../../components/DetailPopup";
-import moment from "moment";
-import DateRangePicker from "react-bootstrap-daterangepicker";
 import "bootstrap-daterangepicker/daterangepicker.css";
-import ReportPopup from '../../components/ReportPopup';
 
 export default class Selesai extends React.Component {
 
-    state = {
-        ready: false,
-        pendaftaran: [],
-        totalPendaftaran: 0,
-        searchValue: "",
-        allEntry: true,
-        limit: 15,
-        offset: 0,
-        page: 1,
-        totalPage: 0,
-        modalNext: false,
-        selectedNext: null,
-        modalDetail: false,
-        selectedDetail: null,
-        startDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
-        endDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
-        tujuan: [],
-        selectedTujuan: "",
-        modalRekap: false
-    }
+  state = {
+    ready: false,
+    purposes: [],
+    selected_purpose: '',
+    registrations: [],
+    formInput: null,
+    formData: [],
+    limit: 10,
+    offset: 0,
+    total_page: 0,
+    page: 1,
+    openNext: false,
+    selected_registration: null
+  }
 
-    componentWillMount() {
-        this._initialize();
-        this.props.models.authenticated.tujuan_index().then((res) => {
-            this.setState({
-                tujuan: res.data.data
-            });
-        });
-    }
+  componentWillMount() {
+    this._init();
+  }
 
-    _initialize() {
-        this.props.models.authenticated.pendaftaran_all_done(this.state.limit, this.state.offset, this.state.searchValue, this.state.startDate, this.state.endDate, !this.state.allEntry, this.state.selectedTujuan).then((data) => {
-            this.setState({
-                pendaftaran: data.data.data,
-                ready: true,
-                totalPendaftaran: data.data.total,
-                totalPage: Math.ceil(data.data.total / this.state.limit)
-            });
-        }).catch(this.props._apiReject);
-    }
+  _init() {
+    this.props.models.Purpose.collection({
+      attributes: ['id', 'name', 'form']
+    }).then((data) => {
+      this.setState({
+        ready: true,
+        purposes: data.rows
+      });
+    }).catch(this.props._apiReject);
+  }
 
-    _onSearch(e) {
-        this.setState({ searchValue: e.target.value }, () => {
-            this._initialize();
-        });
-    }
+  // _onSearch(e) {
+  //     this.setState({ searchValue: e.target.value }, () => {
+  //         this._initialize();
+  //     });
+  // }
 
-    _setPage(page) {
-        this.setState({ page, offset: (page - 1) * this.state.limit }, () => {
-            this._initialize();
-        });
-    }
+  _setPage(page) {
+    this.setState({ page, offset: (page - 1) * this.state.limit }, () => {
+      this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+    });
+  }
 
-    _openNext(id_pendaftaran) {
-        this.setState({ selectedNext: id_pendaftaran, modalNext: true });
-    }
+  // _openNext(id_pendaftaran) {
+  //     this.setState({ selectedNext: id_pendaftaran, modalNext: true });
+  // }
 
-    _openDetail(id_pendaftaran) {
-        this.setState({ selectedDetail: id_pendaftaran, modalDetail: true });
-    }
+  // _openDetail(id_pendaftaran) {
+  //     this.setState({ selectedDetail: id_pendaftaran, modalDetail: true });
+  // }
 
-    _handleDateRange(e, selectionRange) {
+  // _handleDateRange(e, selectionRange) {
+  //     this.setState({
+  //         startDate: selectionRange.startDate.format(moment.HTML5_FMT.DATE),
+  //         endDate: selectionRange.endDate.format(moment.HTML5_FMT.DATE)
+  //     }, this._initialize.bind(this));
+  //     console.log(selectionRange.startDate.format(moment.HTML5_FMT.DATE));
+  // }
+
+  // _handleEntryChange() {
+  //     this.setState({ allEntry: !this.state.allEntry }, () => {
+  //         this._initialize();
+  //     });
+  // }
+
+  // _handleTujuanChange(e) {
+  //     this.setState({ selectedTujuan: e.target.value }, () => {
+  //         this._initialize();
+  //     });
+  // }
+
+  _onChangePurpose(e) {
+    const { value: idx } = e.target;
+    if (idx) {
+      this._fetchRegistrations(this.state.purposes[idx].id).then(() => {
         this.setState({
-            startDate: selectionRange.startDate.format(moment.HTML5_FMT.DATE),
-            endDate: selectionRange.endDate.format(moment.HTML5_FMT.DATE)
-        }, this._initialize.bind(this));
-        console.log(selectionRange.startDate.format(moment.HTML5_FMT.DATE));
-    }
-
-    _handleEntryChange() {
-        this.setState({ allEntry: !this.state.allEntry }, () => {
-            this._initialize();
+          selected_purpose: idx
         });
+      }).catch(this.props._apiReject);
+    } else {
+      this.setState({
+        registration: [],
+        selected_purpose: ''
+      });
     }
+  }
 
-    _handleTujuanChange(e) {
-        this.setState({ selectedTujuan: e.target.value }, () => {
-            this._initialize();
-        });
+  _fetchRegistrations(purpose_id) {
+    return this.props.models.Registration.collection({
+      attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id'],
+      limit: this.state.limit,
+      offset: this.state.offset,
+      where: {
+        step_id: null,
+        user_id: null,
+        purpose_id: purpose_id
+      },
+      order: [['created_at', 'desc']]
+    }).then((data) => {
+      this.setState({
+        registrations: data.rows,
+        total_page: Math.ceil(data.count / this.state.limit),
+      });
+    });
+  }
+
+  render() {
+    const selected_purpose = this.state.purposes[this.state.selected_purpose];
+    let links = [];
+    for (let i = 0; i < this.state.total_page; i++) {
+      links.push(
+        <PaginationItem key={i} active={(this.state.page === i + 1)}>
+          <PaginationLink onClick={() => this._setPage(i + 1)} tag="button">{i + 1}</PaginationLink>
+        </PaginationItem>
+      );
     }
-
-    render() {
-        let links = [];
-        for (let i = 0; i < this.state.totalPage; i++) {
-            links.push(
-                <PaginationItem key={i} active={(this.state.page === i + 1)}>
-                    <PaginationLink onClick={() => this._setPage(i + 1)} tag="button">{i + 1}</PaginationLink>
-                </PaginationItem>
-            );
-        }
-        return (
-            (this.state.ready) ?
-                <div className="animated fadeIn">
-                    <Row>
-                        <Col xs="12" sm="12">
-                            <Card>
-                                <CardHeader>
-                                    <i className="fa fa-align-justify"></i> Daftar pendaftaran dalam proses
+    return (
+      (this.state.ready) ?
+        <div className="animated fadeIn">
+          <Row>
+            <Col xs="12" sm="12">
+              <Card>
+                <CardHeader>
+                  <i className="fa fa-align-justify"></i> Daftar pendaftaran selesai
                             </CardHeader>
-                                <CardBody>
-                                    <InputGroup>
-                                        <InputGroupAddon addonType="prepend">
-                                            <Button type="button" color="primary"><i className="fa fa-search"></i> Search</Button>
-                                        </InputGroupAddon>
-                                        <Input type="text" value={this.state.searchValue} onChange={this._onSearch.bind(this)} id="input1-group2" name="input1-group2" placeholder="Nama atau NIK pendaftar.." />
-                                    </InputGroup>
-                                    <hr />
-                                    <div className="btn-group btn-group-md">
-                                        <button className="btn btn-outline-primary"><i className="fa fa-print"></i> Cetak</button>
-                                        <button className="btn btn-outline-primary" onClick={() => this.setState({ modalRekap: true })}><i className="fa fa-file"></i> Rekap</button>
-                                    </div>
-                                    <hr />
-                                    <div className="ctrl-table">
-                                        <div className="ctrl-table-item">
+                <CardBody>
+                  <InputGroup>
+                    <InputGroupAddon addonType="prepend">
+                      <Button type="button" color="primary"><i className="fa fa-search"></i> Search</Button>
+                    </InputGroupAddon>
+                    {/* <Input type="text" value={this.state.searchValue} onChange={this._onSearch.bind(this)} id="input1-group2" name="input1-group2" placeholder="Nama atau NIK pendaftar.." /> */}
+                    <Input type="select" onChange={this._onChangePurpose.bind(this)} value={this.state.selected_purpose}>
+                      <option value="">Pilih Tujuan</option>
+                      {this.state.purposes.map((p, i) => (
+                        <option key={i} value={i}>{p.name}</option>
+                      ))}
+                    </Input>
+                  </InputGroup>
+                  <hr />
+                  <div className="ctrl-table">
+                    {/* <div className="ctrl-table-item">
                                             <span className="ctrl-table-label">Jumlah Dokumen</span>
                                             <div>{this.state.pendaftaran.length} dokumen</div>
                                         </div>
@@ -150,91 +171,82 @@ export default class Selesai extends React.Component {
                                                     <option key={t.id_tujuan} value={t.id_tujuan}>{t.nama_tujuan}</option>
                                                 ))}
                                             </select>
-                                        </div>
-                                    </div>
-                                    <Table responsive striped>
-                                        <thead>
-                                            <tr>
-                                                <th>Nama pendaftar</th>
-                                                <th>NIK pendaftar</th>
-                                                <th>Tujuan</th>
-                                                <th>Posisi berkas</th>
-                                                <th>Pengurus</th>
-                                                <th>Waktu berkas tiba</th>
-                                                <th>Tanggal pengambilan</th>
-                                                <th>Nama Pemohon</th>
-                                                <th>NIK Pemohon</th>
-                                                <th>Tindakan</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {this.state.pendaftaran.length !== 0 ?
-                                                this.state.pendaftaran.map((item, i) => {
-                                                    return (
-                                                        <tr key={i}>
-                                                            <td>{item.nama_pendaftar}</td>
-                                                            <td>{item.nik_pendaftar}</td>
-                                                            <td>{item.tujuan}</td>
-                                                            <td>{item.nama_step} - <Badge color={item.id_pengurus !== this.props._userdata.id_pengguna ? "success" : "danger"}>Step {item.nomor_step}</Badge></td>
-                                                            <td>{item.nama_pengurus}</td>
-                                                            <td>{moment(item.waktu).format("Do MMM YYYY, h:mm:ss a")}</td>
-                                                            <td>{moment(item.tanggal_pengambilan).format("Do MMM YYYY")}</td>
-                                                            <td>{item.nama_pemohon}</td>
-                                                            <td>{item.nik_pemohon}</td>
-                                                            <td>
-                                                                <button onClick={() => this._openDetail(item.id_pendaftaran)} type="button" className="btn btn-outline-primary">
-                                                                    <i className="fa fa-eye"></i>&nbsp;Detail
-                                                            </button>
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                }) :
-                                                <tr>
-                                                    <td colSpan="10" className="text-center">Tidak ada data yang ditemukan</td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </Table>
+                                        </div> */}
+                  </div>
+                  {
+                    selected_purpose && (
+                      <Table responsive striped>
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>NAMA PEMOHON</th>
+                            <th>NIK PEMOHON</th>
+                            <th>PENGURUS SAAT INI</th>
+                            <th>STEP SAAT INI</th>
+                            {
+                              selected_purpose.form.map(({ name }, i) => (
+                                <th key={i}>{name.toUpperCase()}</th>
+                              ))
+                            }
+                            <th>PILIHAN</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {
+                            this.state.registrations.map((t, i) => (
+                              <tr key={i}>
+                                <td>{i + 1}</td>
+                                <td>{t.name.toUpperCase()}</td>
+                                <td>{t.nik}</td>
+                                <td>- SELESAI -</td>
+                                <td><Badge color="success">SELESAI</Badge></td>
 
-                                    {(this.state.totalPage > 1) ?
-                                        <Pagination>
-                                            <PaginationItem onClick={(this.state.page === 1) ? undefined : () => this._setPage(this.state.page - 1)} disabled={this.state.page === 1}><PaginationLink previous tag="button">Prev</PaginationLink></PaginationItem>
-                                            {links}
-                                            <PaginationItem onClick={(this.state.page === this.state.totalPage) ? undefined : () => this._setPage(this.state.page + 1)} disabled={this.state.page === this.state.totalPage} ><PaginationLink next tag="button">Next</PaginationLink></PaginationItem>
-                                        </Pagination>
-                                        : ""}
+                                {
+                                  selected_purpose.form.map(({ name }, j) => (
+                                    <td key={j}>{t.data[name]}</td>
+                                  ))
+                                }
+                                <td>
+                                  <button type="button" className="btn btn-outline-primary">
+                                    <i className="fa fa-eye"></i>&nbsp;Detail
+                                                                </button>
+                                </td>
+                              </tr>
+                            ))
+                          }
+                        </tbody>
+                      </Table>
+                    )
+                  }
+                  {(this.state.total_page > 1) ?
+                    <Pagination>
+                      <PaginationItem onClick={(this.state.page === 1) ? undefined : () => this._setPage(this.state.page - 1)} disabled={this.state.page === 1}><PaginationLink previous tag="button">Prev</PaginationLink></PaginationItem>
+                      {links}
+                      <PaginationItem onClick={(this.state.page === this.state.total_page) ? undefined : () => this._setPage(this.state.page + 1)} disabled={this.state.page === this.state.total_page} ><PaginationLink next tag="button">Next</PaginationLink></PaginationItem>
+                    </Pagination>
+                    : ""}
 
-                                </CardBody>
-                            </Card>
-                        </Col>
-                    </Row>
-                    <NextPopup
-                        {...this.props}
-                        open={this.state.modalNext}
-                        id_pendaftaran={this.state.selectedNext}
-                        onSuccess={() => { this.setState({ selectedNext: null, modalNext: false }); this._initialize() }}
-                        onCancel={() => this.setState({ selectedNext: null, modalNext: false })} />
-                    <DetailPopup
-                        {...this.props}
-                        log={true}
-                        open={this.state.modalDetail}
-                        id_pendaftaran={this.state.selectedDetail}
-                        toggle={() => this.setState({ modalDetail: !this.state.modalDetail, selectedDetail: null })}
-                    />
-                    <ReportPopup
-                        {...this.props}
-                        open={this.state.modalRekap}
-                        onCancel={() => this.setState({ modalRekap: false })}
-                    />
-                </div> :
-                <Loadable
-                    spinnerSize="100px"
-                    className="loading-full"
-                    active={true}
-                    spinner
-                    color="#000000"
-                    text="Memuat data.." />
-        )
-    }
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+          {this.state.openNext && <NextPopup
+            {...this.props}
+            onSuccess={() => {
+              this.setState({ openNext: false });
+              this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+            }}
+            onCancel={() => this.setState({ openNext: false })}
+            registration={this.state.selected_registration} />}
+        </div > :
+        <Loadable
+          spinnerSize="100px"
+          className="loading-full"
+          active={true}
+          spinner
+          color="#000000"
+          text="Memuat data.." />
+    )
+  }
 
 }

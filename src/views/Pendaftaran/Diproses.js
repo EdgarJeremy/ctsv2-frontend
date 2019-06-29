@@ -3,6 +3,7 @@ import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, Card
 import Loadable from "react-loading-overlay";
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
+import DetailPopup from '../../components/DetailPopup';
 
 export default class Diproses extends React.Component {
 
@@ -18,7 +19,8 @@ export default class Diproses extends React.Component {
     total_page: 0,
     page: 1,
     openNext: false,
-    selected_registration: null
+    selected_registration: null,
+    openDetail: false
   }
 
   componentWillMount() {
@@ -98,6 +100,12 @@ export default class Diproses extends React.Component {
       limit: this.state.limit,
       offset: this.state.offset,
       where: {
+        step_id: {
+          $ne: null
+        },
+        user_id: {
+          $ne: null
+        },
         purpose_id: purpose_id
       },
       include: [{
@@ -106,6 +114,9 @@ export default class Diproses extends React.Component {
       }, {
         model: 'User',
         attributes: ['id', 'name', 'level']
+      }, {
+        model: 'Purpose',
+        attributes: ['id', 'name', 'form']
       }],
       order: [['created_at', 'desc']]
     }).then((data) => {
@@ -186,8 +197,8 @@ export default class Diproses extends React.Component {
                             <th>#</th>
                             <th>NAMA PEMOHON</th>
                             <th>NIK PEMOHON</th>
-                            <th>PENGURUS</th>
-                            <th>STEP</th>
+                            <th>PENGURUS SAAT INI</th>
+                            <th>STEP SAAT INI</th>
                             {
                               selected_purpose.form.map(({ name }, i) => (
                                 <th key={i}>{name.toUpperCase()}</th>
@@ -212,7 +223,12 @@ export default class Diproses extends React.Component {
                                   ))
                                 }
                                 <td>
-                                  <button type="button" className="btn btn-outline-primary">
+                                  <button onClick={() => {
+                                    this.setState({
+                                      openDetail: true,
+                                      selected_registration: this.state.registrations[i]
+                                    })
+                                  }} type="button" className="btn btn-outline-primary">
                                     <i className="fa fa-eye"></i>&nbsp;Detail
                                                                 </button>{' '}
                                   <button disabled={this.props._userdata.id !== t.user.id} onClick={() => {
@@ -250,7 +266,13 @@ export default class Diproses extends React.Component {
               this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
             }}
             onCancel={() => this.setState({ openNext: false })}
-            registration={this.state.selected_registration} />}
+            registration={this.state.selected_registration}
+          />}
+          {this.state.openDetail && <DetailPopup
+            {...this.props}
+            onCancel={() => this.setState({ openDetail: false })}
+            registration={this.state.selected_registration}
+          />}
         </div > :
         <Loadable
           spinnerSize="100px"

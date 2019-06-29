@@ -10214,6 +10214,7 @@ body {
     position: relative;
     padding-bottom: 62px; }
     .app-body .main .main-container {
+      background-color: #ffffff;
       padding: 0px;
       height: 100%;
       overflow-x: hidden; }
@@ -10242,3 +10243,11 @@ footer {
   width: 100%;
   margin: 0 !important;
   padding: 20px !important; }
+
+.step-desc p {
+  margin: 0; }
+
+.step-desc ol {
+  margin: 0;
+  padding: 0;
+  list-style-position: inside; }

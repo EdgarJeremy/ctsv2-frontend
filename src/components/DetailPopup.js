@@ -1,136 +1,140 @@
 import React from "react";
-import {Modal, ModalHeader, ModalBody, Table, Card, CardHeader, CardBody} from "reactstrap";
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter, Table, Card, CardHeader, CardBody } from "reactstrap";
 import moment from "moment";
+import Steps, { Step } from 'rc-steps';
+
+import Loadable from "react-loading-overlay";
+import 'rc-steps/assets/index.css';
+import 'rc-steps/assets/iconfont.css';
 import "moment/locale/id.js";
-import _ from "lodash";
 
 export default class DetailPopup extends React.Component {
 
-    state = {
-        ready: false,
-        tracks: []
-    }
+  state = {
+    ready: false,
+    steps: [],
+    tracks: [],
+  }
 
-    constructor(props) {
-        super(props);
-        moment.locale("id");
-    }
+  constructor(props) {
+    super(props);
+    moment.locale("id");
+  }
 
-    _initialize(p = this.props) {
-        if(p.log) {
-            this.props.models.authenticated.pendaftaran_one_done(p.id_pendaftaran).then((tracks) => {
-                this.setState({tracks: tracks.data, ready: true});
-            }).catch(this.props._apiReject);
-        } else {
-            this.props.models.authenticated.pendaftaran_one_track(p.id_pendaftaran).then((tracks) => {
-                this.setState({tracks: tracks.data, ready: true});
-            }).catch(this.props._apiReject);
-        }
-    } 
+  componentDidMount() {
+    this._init();
+  }
 
-    componentWillReceiveProps(p) {
-        if(p.id_pendaftaran)
-            this._initialize(p);
-    }
+  _init() {
+    const { registration } = this.props;
+    this.props.models.Step.collection({
+      attributes: ['id', 'name', 'step', 'description'],
+      where: {
+        purpose_id: registration.purpose_id
+      },
+      order: [['step', 'asc']]
+    }).then((data) => {
+      this.setState({ steps: data.rows });
+    }).then(
+      this.props.models.Track.collection.bind(this.props.models.Track, {
+        attributes: ['id', 'description', 'user_id', 'step_id'],
+        where: {
+          registration_id: registration.id
+        },
+        include: [{
+          model: 'User',
+          attributes: ['id', 'name', 'level', 'pending_user']
+        }]
+      })
+    ).then((data) => {
+      this.setState({ tracks: data.rows, ready: true });
+    })
+      .catch(this.props._apiReject);
+  }
 
-    render() {
-        return(
-            (this.state.ready) ?
-            <Modal isOpen={this.props.open} className="modal-primary modal-lg modal-wide">
-                <ModalHeader toggle={this.props.toggle}>Detail Pendaftaran</ModalHeader>
-                <ModalBody className="lay">
-                    <Card>
-                        <CardHeader>
-                            Informasi Pendaftar
-                        </CardHeader>
-                        <CardBody>
-                            <Table responsive>
-                                <thead>
-                                    <tr>
-                                        <th>Nama Pendaftar</th>
-                                        <th>NIK Pendaftar</th>
-                                        <th>Tujuan Pendaftaran</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{this.state.tracks[0].nama_pendaftar}</td>
-                                        <td>{this.state.tracks[0].nik_pendaftar}</td>
-                                        <td>{this.state.tracks[0].tujuan}</td>
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </CardBody>
-                    </Card>
+  _findHandledBy(step_id) {
+    const users = [];
+    this.state.tracks.forEach((t, i) => {
+      if (t.step_id === step_id) users.push(t.user);
+    });
+    return users;
+  }
 
-                    <Card>
-                        <CardHeader>
-                            Jejak Berkas
-                        </CardHeader>
-                        <CardBody>
-                            <section id="conference-timeline">
-                                <div className="timeline-start">Mulai</div>
-                                <div className="conference-center-line"></div>
-                                <div className="conference-timeline-content">
-                                
-                                    {this.state.tracks.map((item, i) => {
-                                        let duration = "Sedang Diproses";
-                                        if(this.state.tracks[i+1]) {
-                                            let start = item.waktu;
-                                            let end = this.state.tracks[i+1].waktu;
-                                            let days = moment(end).diff(start, 'days');
-                                            let hours = moment(end).diff(start, 'hours') % 24;
-                                            let minutes = moment(end).diff(start, 'minutes') % 60;
-                                            let seconds = moment(end).diff(start, "seconds");
-                                            duration = ((days > 0) ? days + ' Hari ' : '') + ((hours > 0) ? hours + ' Jam ' : '') + ((minutes > 0) ? minutes + ' Menit ' : ''); 
-                                            duration = _.isEmpty(duration) ? seconds + " Detik" : duration;
-                                        } else if(this.props.log) {
-                                            let start = item.waktu;
-                                            let end = item.waktu_selesai;
-                                            let days = moment(end).diff(start, 'days');
-                                            let hours = moment(end).diff(start, 'hours') % 24;
-                                            let minutes = moment(end).diff(start, 'minutes') % 60;
-                                            let seconds = moment(end).diff(start, "seconds");
-                                            duration = ((days > 0) ? days + ' Hari ' : '') + ((hours > 0) ? hours + ' Jam ' : '') + ((minutes > 0) ? minutes + ' Menit ' : ''); 
-                                            duration = _.isEmpty(duration) ? seconds + " Detik" : duration;
-                                        }
-                                        return (
-                                            <div key={i} className="timeline-article">
-                                                <div className="content-left-container">
-                                                    <div className="content-left">
-                                                        <p><b>{item.nama_step}</b> <br /><small>{item.deskripsi_step || "Tidak ada deskripsi"}</small><span className="article-number">{item.nomor_step}</span></p>
-                                                    </div>
-                                                </div>
-                                                <div className="content-right-container">
-                                                    <div className="content-right">
-                                                        <b>Waktu mulai diurus</b><br />
-                                                        { moment(item.waktu).format("Do MMMM YYYY, h:mm:ss a") }<br />
-                                                        <b>Pengurus berkas</b><br />
-                                                        {item.nama_pengurus}<br />
-                                                        <b>Waktu pengerjaan</b><br />
-                                                        {duration}<br />
-                                                        <b>Deskripsi / Alasan Ketertundaan</b><br />
-                                                        {item.deskripsi_track}
-                                                    </div>
-                                                </div>
-                                                <div className="meta-date">
-                                                    <span className="date">{item.nomor_step}</span>
-                                                    <span className="month">STEP</span>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                
-                                </div>
-                                <div className="timeline-end">{this.props.log ? "Selesai" : "Dalam Proses"}</div>
-                            </section>
-                        </CardBody>
-                    </Card>
-                    
-                    
-                </ModalBody>
-            </Modal> : ""
-        )
-    }
+  render() {
+    return (
+      <Modal isOpen={true} className="modal-primary modal-lg modal-wide">
+        <ModalHeader toggle={this.props.toggle}>Detail Jejak Pendaftaran</ModalHeader>
+        {this.state.ready ? (
+
+          <ModalBody className="lay">
+            <Card>
+              <CardHeader>
+                Informasi Pendaftaran
+              </CardHeader>
+              <CardBody>
+                <Table responsive>
+                  <thead>
+                    <tr>
+                      <td><b>NAMA PEMOHON</b></td>
+                      <td>{this.props.registration.name}</td>
+                    </tr>
+                    <tr>
+                      <td><b>NIK PEMOHON</b></td>
+                      <td>{this.props.registration.nik}</td>
+                    </tr>
+                    {this.props.registration.purpose.form.map((f, i) => (
+                      <tr key={i}>
+                        <td><b>{f.name}</b></td>
+                        <td>{this.props.registration.data[f.name]}</td>
+                      </tr>
+                    ))}
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </Table>
+              </CardBody>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                Jejak Berkas
+  </CardHeader>
+              <CardBody>
+                <Steps icons={{ finish: <i className="fa fa-check"></i> }} current={this.props.registration.step.step - 1}>
+                  {this.state.steps.map((s, i) => (
+                    <Step key={i} title={s.name} description={
+                      <div className="step-desc">
+                        <b>Deskripsi : </b>
+                        <p>{s.description ? s.description : '--'}</p>
+                        <b>Pengurus : </b>
+                        <ol>
+                          {this._findHandledBy(s.id).map((u, i) => (
+                            <li key={i}>{u.name} ({u.pending_user ? 'PENDING' : 'REGULAR'})</li>
+                          ))}
+                        </ol>
+                      </div>
+                    } />
+                  ))}
+                </Steps>
+              </CardBody>
+            </Card>
+            <ModalFooter>
+              <Button color="danger" onClick={this.props.onCancel} block>TUTUP</Button>
+            </ModalFooter>
+          </ModalBody>
+        ) : (
+            <Loadable
+              spinnerSize="100px"
+              style={{ height: 200 }}
+              background="#ffffff"
+              active={true}
+              spinner
+              color="#000000"
+              text="Menyiapkan.." />
+          )}
+
+      </Modal>
+    )
+  }
 
 }
