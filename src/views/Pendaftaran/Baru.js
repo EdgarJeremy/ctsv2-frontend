@@ -9,10 +9,16 @@ import {
   Label,
   CardFooter,
   Button,
-  Input
+  Input,
+  InputGroup,
+  InputGroupButtonDropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem
 } from "reactstrap";
 import Loadable from "react-loading-overlay";
 import swal from 'sweetalert';
+import axios from 'axios';
 
 export default class Baru extends React.Component {
 
@@ -22,7 +28,9 @@ export default class Baru extends React.Component {
     name: '',
     nik: '',
     formData: {},
-    ready: false
+    toggles: [],
+    ready: false,
+    hoverAct: {}
   }
 
   componentWillMount() {
@@ -32,7 +40,14 @@ export default class Baru extends React.Component {
   _init() {
     this.props.models.Purpose.collection({
       attributes: ['id', 'name', 'form'],
-      include: [{ model: 'Step' }]
+      include: [{
+        attributes: ['reference', 'method', 'param_name', 'mapping'],
+        model: 'SourceList',
+        include: [{
+          model: 'Api',
+          attributes: ['id', 'name', 'url', 'return_values']
+        }]
+      }]
     }).then((data) => {
       this.setState({
         ready: true,
@@ -54,13 +69,15 @@ export default class Baru extends React.Component {
       }, () => {
         this.setState({
           selected_purpose: purpose,
-          formData: formData
+          formData: formData,
+          toggles: purpose.form.map(f => false)
         });
       })
     } else {
       this.setState({
         selected_purpose: '',
-        formData: {}
+        formData: {},
+        toggles: []
       });
     }
   }
@@ -108,6 +125,43 @@ export default class Baru extends React.Component {
       }).catch(this.props._apiReject);
   }
 
+  _getSources(reference) {
+    const purpose = this.state.selected_purpose;
+    return purpose.source_lists.filter((sl, i) => sl.reference === reference);
+  }
+
+  _fetchSource(source) {
+    if(this.state.formData[source.reference]) {
+      if (source.method === 'GET') {
+        const params = { [source.param_name]: this.state.formData[source.reference] };
+        axios.get(source.api.url, { params }).then((res) => {
+          const data = res.data;
+          const { formData } = this.state;
+          Object.keys(source.mapping).forEach((f) => {
+            if (source.mapping[f]) {
+              formData[f] = data[source.mapping[f]];
+            }
+          });
+          this.setState({ formData, hoverAct: {} });
+        }).catch((err) => alert(err.message));
+      } else {
+        const body = { [source.param_name]: this.state.formData[source.reference] };
+        axios.post(source.api.url, body).then((res) => {
+          const data = res.data;
+          const { formData } = this.state;
+          Object.keys(source.mapping).forEach((f) => {
+            if (source.mapping[f]) {
+              formData[f] = data[source.mapping[f]];
+            }
+          });
+          this.setState({ formData, hoverAct: {} });
+        }).catch((err) => alert(err.message));
+      }
+    } else {
+      alert(`Isi field ${source.reference}`);
+    }
+  }
+
   render() {
     return (
       (this.state.ready) ?
@@ -123,15 +177,15 @@ export default class Baru extends React.Component {
                     <Row>
                       <Col xs="12">
                         <FormGroup>
-                          <Label><b>NIK Pendaftar</b></Label>
+                          <Label><b>NIK PEMOHON</b></Label>
                           <Input onChange={(e) => this.setState({ nik: e.target.value })} value={this.state.nik} placeholder="NIK Pendaftar" required />
                         </FormGroup>
                         <FormGroup>
-                          <Label><b>Nama Pendaftar</b></Label>
+                          <Label><b>NAMA PEMOHON</b></Label>
                           <Input onChange={(e) => this.setState({ name: e.target.value })} value={this.state.name} placeholder="Nama Pendaftar" required />
                         </FormGroup>
                         <FormGroup>
-                          <Label><b>Tujuan</b></Label>
+                          <Label><b>TUJUAN</b></Label>
                           <Input
                             onChange={this._changePurpose.bind(this)}
                             type="select"
@@ -157,8 +211,35 @@ export default class Baru extends React.Component {
                                 </div>
                               ) : (
                                   <div>
-                                    <Label for={form.name}><b>{form.name}</b></Label>
-                                    <Input accept="image/*" onChange={this._onChangeInput.bind(this)} name={form.name} type={form.type} placeholder={form.name} value={this.state.formData[form.name]} />
+                                    <Label for={form.name} className={this.state.hoverAct[form.name] ? 'will-autocomplete' : ''}><b>{form.name}</b></Label>
+                                    {this._getSources(form.name).length > 0 ? (
+                                      <InputGroup>
+                                        <Input valid={this.state.hoverAct[form.name] ? true : false} accept="image/*" onChange={this._onChangeInput.bind(this)} name={form.name} type={form.type} placeholder={form.name} value={this.state.formData[form.name]} />
+                                        <InputGroupButtonDropdown addonType="append" isOpen={this.state.toggles[i]} toggle={() => {
+                                          const { toggles } = this.state;
+                                          toggles[i] = !toggles[i];
+                                          this.setState({
+                                            toggles,
+                                            hoverAct: {}
+                                          });
+                                        }}>
+                                          <DropdownToggle color="info" caret>
+                                            Sumber Eksternal
+                                          </DropdownToggle>
+                                          <DropdownMenu>
+                                            {this._getSources(form.name).map((s, i) => (
+                                              <DropdownItem onMouseEnter={() => {
+                                                this.setState({
+                                                  hoverAct: s.mapping
+                                                });
+                                              }} onMouseLeave={() => this.setState({ hoverAct: {} })} onClick={() => this._fetchSource(s)} key={i}>(#{i + 1}) {s.api.name}</DropdownItem>
+                                            ))}
+                                          </DropdownMenu>
+                                        </InputGroupButtonDropdown>
+                                      </InputGroup>
+                                    ) : (
+                                        <Input valid={this.state.hoverAct[form.name] ? true : false} accept="image/*" onChange={this._onChangeInput.bind(this)} name={form.name} type={form.type} placeholder={form.name} value={this.state.formData[form.name]} />
+                                      )}
                                   </div>
                                 )}
                             </FormGroup>

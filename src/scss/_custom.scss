@@ -480,8 +480,13 @@ footer {
 }
 
 .tr-new-data {
-  background-color: #2f353a;
+  background-color: #2f353a !important;
   color: #ffffff;
+}
+
+.will-autocomplete {
+  transition: 0.3s ease-in-out;
+  color: #28a745;
 }
 
 // .sidebar {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, ModalHeader, ModalBody, Table, Input, Button } from 'reactstrap';
 import Loadable from "react-loading-overlay";
+import swal from 'sweetalert';
 
 export default class SourceListPopup extends React.Component {
 
@@ -100,6 +101,26 @@ export default class SourceListPopup extends React.Component {
     }).catch(this.props._apiReject);
   }
 
+  _onDelete(source) {
+    swal({
+      title: "Anda yakin?",
+      text: `Anda akan menghapus sumber ini dari sistem?`,
+      buttons: [
+          "Tidak",
+          "Ya"
+      ],
+      icon: "warning"
+  }).then((isConfirm) => {
+      if (isConfirm) {
+          source.delete().then(() => {
+              swal('Konfirmasi', `Sumber berhasil dihapus dari sistem`, 'success').then(this._init.bind(this));
+          }).catch((err) => {
+              swal('Error', err.messsage, 'error').then(this._init.bind(this));
+          });
+      }
+  });
+  }
+
   render() {
     return (
       <div className="animated fadeIn">
@@ -133,7 +154,7 @@ export default class SourceListPopup extends React.Component {
                         }
                       </td>
                       <td>
-                        <Button color="danger" block><i className="fa fa-trash"></i></Button>
+                        <Button color="danger" onClick={() => this._onDelete(s)} block><i className="fa fa-trash"></i></Button>
                       </td>
                     </tr>
                   ))}
