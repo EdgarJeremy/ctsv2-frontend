@@ -10251,3 +10251,16 @@ footer {
   margin: 0;
   padding: 0;
   list-style-position: inside; }
+
+.mapping-table tr {
+  background-color: transparent !important; }
+  .mapping-table tr td {
+    padding: 0; }
+    .mapping-table tr td.td-exchange {
+      padding-left: 5px;
+      padding-right: 5px;
+      padding-top: 5px; }
+
+.tr-new-data {
+  background-color: #2f353a;
+  color: #ffffff; }
