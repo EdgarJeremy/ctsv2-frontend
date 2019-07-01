@@ -19,6 +19,7 @@ import {
 import Loadable from "react-loading-overlay";
 import swal from 'sweetalert';
 import axios from 'axios';
+import ApiResult from '../../components/ApiResult';
 
 export default class Baru extends React.Component {
 
@@ -30,7 +31,10 @@ export default class Baru extends React.Component {
     formData: {},
     toggles: [],
     ready: false,
-    hoverAct: {}
+    hoverAct: {},
+    modalResult: false,
+    result: [],
+    source: null
   }
 
   componentWillMount() {
@@ -131,35 +135,50 @@ export default class Baru extends React.Component {
   }
 
   _fetchSource(source) {
-    if(this.state.formData[source.reference]) {
+    if (this.state.formData[source.reference]) {
       if (source.method === 'GET') {
         const params = { [source.param_name]: this.state.formData[source.reference] };
         axios.get(source.api.url, { params }).then((res) => {
           const data = res.data;
-          const { formData } = this.state;
-          Object.keys(source.mapping).forEach((f) => {
-            if (source.mapping[f]) {
-              formData[f] = data[source.mapping[f]];
-            }
-          });
-          this.setState({ formData, hoverAct: {} });
+          console.log(data);
+          if (Array.isArray(data)) {
+            this.setState({
+              modalResult: true,
+              result: data,
+              source: source
+            });
+          } else {
+            this.setState({
+              source
+            }, () => {
+              this._setData(data);
+            })
+          }
         }).catch((err) => alert(err.message));
       } else {
         const body = { [source.param_name]: this.state.formData[source.reference] };
         axios.post(source.api.url, body).then((res) => {
           const data = res.data;
-          const { formData } = this.state;
-          Object.keys(source.mapping).forEach((f) => {
-            if (source.mapping[f]) {
-              formData[f] = data[source.mapping[f]];
-            }
-          });
-          this.setState({ formData, hoverAct: {} });
+          this.setState({
+            source
+          }, () => {
+            this._setData(data);
+          })
         }).catch((err) => alert(err.message));
       }
     } else {
       alert(`Isi field ${source.reference}`);
     }
+  }
+
+  _setData(data) {
+    const { formData, source } = this.state;
+    Object.keys(source.mapping).forEach((f) => {
+      if (source.mapping[f]) {
+        formData[f] = data[source.mapping[f]];
+      }
+    });
+    this.setState({ formData, hoverAct: {}, modalResult: false });
   }
 
   render() {
@@ -257,6 +276,12 @@ export default class Baru extends React.Component {
               </form>
             </Col>
           </Row>
+          {this.state.modalResult && <ApiResult
+            open={this.state.modalResult}
+            result={this.state.result}
+            source={this.state.source}
+            setData={this._setData.bind(this)}
+          />}
         </div> :
         <Loadable
           spinnerSize="100px"
