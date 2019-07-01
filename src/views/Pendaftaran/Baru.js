@@ -178,11 +178,11 @@ export default class Baru extends React.Component {
                       <Col xs="12">
                         <FormGroup>
                           <Label><b>NIK PEMOHON</b></Label>
-                          <Input onChange={(e) => this.setState({ nik: e.target.value })} value={this.state.nik} placeholder="NIK Pendaftar" required />
+                          <Input onChange={(e) => this.setState({ nik: e.target.value })} value={this.state.nik} placeholder="NIK PEMOHON" required />
                         </FormGroup>
                         <FormGroup>
                           <Label><b>NAMA PEMOHON</b></Label>
-                          <Input onChange={(e) => this.setState({ name: e.target.value })} value={this.state.name} placeholder="Nama Pendaftar" required />
+                          <Input onChange={(e) => this.setState({ name: e.target.value })} value={this.state.name} placeholder="NAMA PEMOHON" required />
                         </FormGroup>
                         <FormGroup>
                           <Label><b>TUJUAN</b></Label>

@@ -10228,7 +10228,8 @@ body {
   .ctrl-table .ctrl-table-item {
     display: inline-block;
     float: left;
-    padding-right: 15px; }
+    padding-right: 15px;
+    margin-top: 7px; }
     .ctrl-table .ctrl-table-item .ctrl-table-label {
       font-weight: bolder;
       display: inline-block;

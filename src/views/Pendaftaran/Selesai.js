@@ -3,6 +3,7 @@ import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, Card
 import Loadable from "react-loading-overlay";
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
+import DetailPopup from '../../components/DetailPopup';
 
 export default class Selesai extends React.Component {
 
@@ -18,7 +19,13 @@ export default class Selesai extends React.Component {
     total_page: 0,
     page: 1,
     openNext: false,
-    selected_registration: null
+    openDetail: false,
+    selected_registration: null,
+    filters: {
+      nik: '',
+      name: '',
+      form: {}
+    }
   }
 
   componentWillMount() {
@@ -79,35 +86,91 @@ export default class Selesai extends React.Component {
   _onChangePurpose(e) {
     const { value: idx } = e.target;
     if (idx) {
-      this._fetchRegistrations(this.state.purposes[idx].id).then(() => {
-        this.setState({
-          selected_purpose: idx
-        });
-      }).catch(this.props._apiReject);
+      const purpose = this.state.purposes[idx];
+      const filters = {
+        nik: '',
+        name: '',
+        form: {}
+      };
+      purpose.form.forEach((f => {
+        filters.form[f.name] = '';
+      }));
+      this.setState({
+        filters
+      }, () => {
+        this._fetchRegistrations(this.state.purposes[idx].id).then(() => {
+          this.setState({
+            selected_purpose: idx
+          });
+        }).catch(this.props._apiReject);
+      })
     } else {
       this.setState({
         registration: [],
-        selected_purpose: ''
+        selected_purpose: '',
+        filters: {}
       });
     }
   }
 
   _fetchRegistrations(purpose_id) {
+    const w = this._filterToWhereQuery();
     return this.props.models.Registration.collection({
       attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id'],
       limit: this.state.limit,
       offset: this.state.offset,
       where: {
+        ...w,
         step_id: null,
         user_id: null,
         purpose_id: purpose_id
       },
+      include: [{
+        model: 'Step',
+        attributes: ['id', 'name', 'step', 'description'],
+      }, {
+        model: 'User',
+        attributes: ['id', 'name', 'level']
+      }, {
+        model: 'Purpose',
+        attributes: ['id', 'name', 'form']
+      }],
       order: [['created_at', 'desc']]
     }).then((data) => {
       this.setState({
         registrations: data.rows,
         total_page: Math.ceil(data.count / this.state.limit),
       });
+    });
+  }
+
+  _filterToWhereQuery() {
+    const { filters } = this.state;
+    const where = {
+      nik: {},
+      name: {},
+      data: {}
+    };
+    where.nik.$iLike = `%${filters.nik}%`;
+    where.name.$iLike = `%${filters.name}%`;
+
+    Object.keys(filters.form).forEach((f) => {
+      where.data[f] = {};
+      where.data[f].$iLike = `%${filters.form[f]}%`;
+    });
+    return where;
+  }
+
+  _onChangeFilter(e) {
+    const { name, value } = e.target;
+    const { filters } = this.state;
+    if (name === 'nik' || name === 'name') {
+      filters[name] = value;
+    } else {
+      filters.form[name] = value;
+    }
+    this.setState({
+      filters
     });
   }
 
@@ -144,78 +207,86 @@ export default class Selesai extends React.Component {
                     </Input>
                   </InputGroup>
                   <hr />
-                  <div className="ctrl-table">
-                    {/* <div className="ctrl-table-item">
-                                            <span className="ctrl-table-label">Jumlah Dokumen</span>
-                                            <div>{this.state.pendaftaran.length} dokumen</div>
-                                        </div>
-                                        <div className="ctrl-table-item">
-                                            <span className="ctrl-table-label">Jangka waktu</span>
-                                            <div>
-                                                <DateRangePicker onApply={this._handleDateRange.bind(this)}>
-                                                    <button className="btn btn-outline-success"><i className="fa fa-calendar"></i> {this.state.startDate} s/d {this.state.endDate}</button>
-                                                </DateRangePicker>
-                                            </div>
-                                        </div>
-                                        {this.props._userdata.level === 'Front Office' ? (
-                                            <div className="ctrl-table-item">
-                                                <span className="ctrl-table-label">Semua Dokumen</span><br />
-                                                <AppSwitch className={'mx-1'} variant={'pill'} color={'primary'} checked={this.state.allEntry} onClick={this._handleEntryChange.bind(this)} />
-                                            </div>
-                                        ) : null}
-                                        <div className="ctrl-table-item">
-                                            <span className="ctrl-table-label">Tujuan</span>
-                                            <select className="form-control" value={this.state.selectedTujuan} onChange={this._handleTujuanChange.bind(this)}>
-                                                <option value="">Semua</option>
-                                                {this.state.tujuan.map((t) => (
-                                                    <option key={t.id_tujuan} value={t.id_tujuan}>{t.nama_tujuan}</option>
-                                                ))}
-                                            </select>
-                                        </div> */}
-                  </div>
                   {
                     selected_purpose && (
-                      <Table responsive striped>
-                        <thead>
-                          <tr>
-                            <th>#</th>
-                            <th>NAMA PEMOHON</th>
-                            <th>NIK PEMOHON</th>
-                            <th>PENGURUS SAAT INI</th>
-                            <th>STEP SAAT INI</th>
-                            {
-                              selected_purpose.form.map(({ name }, i) => (
-                                <th key={i}>{name.toUpperCase()}</th>
-                              ))
-                            }
-                            <th>PILIHAN</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                      <div>
+                        <h5><i className="fa fa-filter"></i> Filter</h5>
+                        <div className="ctrl-table">
+                          <div className="ctrl-table-item">
+                            <Input placeholder="NIK Pemohon" type="number" value={this.state.filters.nik} name="nik" onChange={this._onChangeFilter.bind(this)} />
+                          </div>
+                          <div className="ctrl-table-item">
+                            <Input placeholder="Nama Pemohon" value={this.state.filters.name} name="name" onChange={this._onChangeFilter.bind(this)} />
+                          </div>
                           {
-                            this.state.registrations.map((t, i) => (
-                              <tr key={i}>
-                                <td>{i + 1}</td>
-                                <td>{t.name.toUpperCase()}</td>
-                                <td>{t.nik}</td>
-                                <td>- SELESAI -</td>
-                                <td><Badge color="success">SELESAI</Badge></td>
-
-                                {
-                                  selected_purpose.form.map(({ name }, j) => (
-                                    <td key={j}>{t.data[name]}</td>
-                                  ))
-                                }
-                                <td>
-                                  <button type="button" className="btn btn-outline-primary">
-                                    <i className="fa fa-eye"></i>&nbsp;Detail
-                                                                </button>
-                                </td>
-                              </tr>
+                            selected_purpose.form.map(({ name, type }, i) => (
+                              <div className="ctrl-table-item" key={i}>
+                                <Input placeholder={name} type={type} value={this.state.filters.form[name]} name={name} onChange={this._onChangeFilter.bind(this)} />
+                              </div>
                             ))
                           }
-                        </tbody>
-                      </Table>
+                        </div>
+                        <div className="">
+                          <Button color="success" onClick={() => this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)}>Terapkan</Button>{' '}
+                          <Button color="warning" onClick={() => {
+                            this.setState({
+                              filters: {
+                                nik: '',
+                                name: '',
+                                form: {}
+                              }
+                            }, () => {
+                              this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)
+                            })
+                          }}>Reset</Button>
+                        </div><br />
+                        <Table responsive striped>
+                          <thead>
+                            <tr>
+                              <th>#</th>
+                              <th>NAMA PEMOHON</th>
+                              <th>NIK PEMOHON</th>
+                              <th>PENGURUS SAAT INI</th>
+                              <th>STEP SAAT INI</th>
+                              {
+                                selected_purpose.form.map(({ name }, i) => (
+                                  <th key={i}>{name.toUpperCase()}</th>
+                                ))
+                              }
+                              <th>PILIHAN</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {
+                              this.state.registrations.map((t, i) => (
+                                <tr key={i}>
+                                  <td>{i + 1}</td>
+                                  <td>{t.name.toUpperCase()}</td>
+                                  <td>{t.nik}</td>
+                                  <td>- SELESAI -</td>
+                                  <td><Badge color="success">SELESAI</Badge></td>
+
+                                  {
+                                    selected_purpose.form.map(({ name }, j) => (
+                                      <td key={j}>{t.data[name]}</td>
+                                    ))
+                                  }
+                                  <td>
+                                    <button onClick={() => {
+                                      this.setState({
+                                        openDetail: true,
+                                        selected_registration: this.state.registrations[i]
+                                      })
+                                    }} type="button" className="btn btn-outline-primary">
+                                      <i className="fa fa-eye"></i>&nbsp;Detail
+                                                                </button>
+                                  </td>
+                                </tr>
+                              ))
+                            }
+                          </tbody>
+                        </Table>
+                      </div>
                     )
                   }
                   {(this.state.total_page > 1) ?
@@ -238,6 +309,11 @@ export default class Selesai extends React.Component {
             }}
             onCancel={() => this.setState({ openNext: false })}
             registration={this.state.selected_registration} />}
+          {this.state.openDetail && <DetailPopup
+            {...this.props}
+            onCancel={() => this.setState({ openDetail: false })}
+            registration={this.state.selected_registration}
+          />}
         </div > :
         <Loadable
           spinnerSize="100px"

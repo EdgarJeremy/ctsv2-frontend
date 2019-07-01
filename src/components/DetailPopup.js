@@ -100,7 +100,7 @@ export default class DetailPopup extends React.Component {
                 Jejak Berkas
   </CardHeader>
               <CardBody>
-                <Steps icons={{ finish: <i className="fa fa-check"></i> }} current={this.props.registration.step.step - 1}>
+                <Steps icons={{ finish: <i className="fa fa-check"></i> }} current={this.props.registration.step ? this.props.registration.step.step - 1 : this.state.steps.length}>
                   {this.state.steps.map((s, i) => (
                     <Step key={i} title={s.name} description={
                       <div className="step-desc">
