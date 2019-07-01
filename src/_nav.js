@@ -38,14 +38,6 @@ function navigation(userdata) {
           url: '/pendaftaran/selesai',
           icon: 'icon-folder-alt',
         },
-        {
-          title: true,
-          name: 'Pengaturan',
-          wrapper: {
-            element: '',
-            attributes: {},
-          },
-        },
       ];
       break;
     case "Loket":
@@ -73,14 +65,6 @@ function navigation(userdata) {
           url: '/pendaftaran/masuk',
           icon: 'icon-list',
         },
-        {
-          title: true,
-          name: 'Pengaturan',
-          wrapper: {
-            element: '',
-            attributes: {},
-          },
-        }
       ];
       break;
     case "Administrator":
@@ -183,14 +167,6 @@ function navigation(userdata) {
           url: '/pendaftaran/selesai',
           icon: 'icon-folder-alt',
         },
-        {
-          title: true,
-          name: 'Pengaturan',
-          wrapper: {
-            element: '',
-            attributes: {},
-          },
-        }
       ];
       break;
     case "Kepala Bidang":
@@ -228,14 +204,43 @@ function navigation(userdata) {
           url: '/pendaftaran/selesai',
           icon: 'icon-folder-alt',
         },
+      ];
+      break;
+    case 'Sekretaris Dinas':
+      navs.items = [
+        {
+          name: 'Dashboard',
+          url: '/dashboard',
+          icon: 'icon-speedometer',
+          badge: {
+            variant: 'info',
+            // text: 'NEW',
+          },
+        },
         {
           title: true,
-          name: 'Pengaturan',
-          wrapper: {
-            element: '',
-            attributes: {},
+          name: 'Pendaftaran',
+          wrapper: {            // optional wrapper object
+            element: '',        // required valid HTML5 element tag
+            attributes: {}        // optional valid JS object with JS API naming ex: { className: "my-class", style: { fontFamily: "Verdana" }, id: "my-id"}
           },
-        }
+          class: ''             // optional class names space delimited list for title item ex: "text-center"
+        },
+        {
+          name: 'Daftar Masuk',
+          url: '/pendaftaran/masuk',
+          icon: 'icon-list',
+        },
+        {
+          name: 'Diproses',
+          url: '/pendaftaran/proses',
+          icon: 'icon-refresh',
+        },
+        {
+          name: 'Selesai',
+          url: '/pendaftaran/selesai',
+          icon: 'icon-folder-alt',
+        },
       ];
       break;
     case "Kepala Sub Bagian":
@@ -273,14 +278,6 @@ function navigation(userdata) {
           url: '/pendaftaran/selesai',
           icon: 'icon-folder-alt',
         },
-        {
-          title: true,
-          name: 'Pengaturan',
-          wrapper: {
-            element: '',
-            attributes: {},
-          },
-        }
       ];
       break;
     default:

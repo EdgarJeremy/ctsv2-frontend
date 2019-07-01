@@ -110,6 +110,7 @@ export default class PengurusPopup extends React.Component {
                     <option value="Front Office">Front Office</option>
                     <option value="Loket">Loket</option>
                     <option value="Kepala Dinas">Kepala Dinas</option>
+                    <option value="Sekretaris Dinas">Kepala Dinas</option>
                     <option value="Kepala Bidang">Kepala Bidang</option>
                     <option value="Kepala Sub Bagian">Kepala Sub Bagian</option>
                     <option value="Administrator">Administrator</option>
