@@ -281,6 +281,11 @@ export default class Baru extends React.Component {
             result={this.state.result}
             source={this.state.source}
             setData={this._setData.bind(this)}
+            onClose={() => {
+              this.setState({
+                modalResult: false
+              })
+            }}
           />}
         </div> :
         <Loadable
