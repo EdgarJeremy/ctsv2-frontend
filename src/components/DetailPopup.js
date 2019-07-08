@@ -97,14 +97,18 @@ export default class DetailPopup extends React.Component {
   }
 
   _getTotalTime(s, nU, nS) {
-    const tS = this._findRootTime(nS.id);
     if (nU) {
       const d = moment.duration(moment(moment(nU.time.created_at)).diff(s));
       return d;
-    } else if (tS.created_at) {
-      const d = moment.duration(moment(moment(tS.created_at)).diff(s));
-      return d;
-    } else return;
+    } else if (nS) {
+      const tS = this._findRootTime(nS.id);
+      if(tS.created_at) {
+        const d = moment.duration(moment(moment(tS.created_at)).diff(s));
+        return d;
+      } else return;
+    } else {
+      return moment.duration(moment(moment(this.props.registration.updated_at)).diff(s));
+    }
   }
 
   render() {
@@ -129,14 +133,15 @@ export default class DetailPopup extends React.Component {
                                       "waiting" : null
                                   )
                               ) : "done"
-                          } end={i === this.state.steps.length - 1}>
+                          } end={i === this.state.steps.length - 1 && this._findHandledBy(s.id).length === 0}>
                             <Item.Left>
                               <b className="track-step">{s.name.toUpperCase()}</b>
                               <span className="track-sm">{s.description.toUpperCase()}</span>
                             </Item.Left>
                             <Item.Center content={(
-                              s.step < this.props.registration.step.step ?
+                              this.props.registration.step ? (s.step < this.props.registration.step.step ?
                                 <i className="fa fa-check"></i> : <b>{s.step}</b>
+                              ) : <i className="fa fa-check"></i>
                             )} />
                             <Item.Right>
                               <b>{this._composeTime(this._findRootTime(s.id).created_at).absolute}</b>
@@ -145,7 +150,7 @@ export default class DetailPopup extends React.Component {
                           </Item.Wrapper>
                           {
                             this._findHandledBy(s.id).map((u, j) => (
-                              <Item.Wrapper key={j} active={this.props.registration.step.step === s.step && j === this._findHandledBy(s.id).length - 1} state={
+                              <Item.Wrapper key={j} active={this.props.registration.step ? (this.props.registration.step.step === s.step && j === this._findHandledBy(s.id).length - 1): false} state={
                                 this.props.registration.step ?
                                   (
                                     s.step < this.props.registration.step.step ?
@@ -167,15 +172,31 @@ export default class DetailPopup extends React.Component {
                                     const d = this._getTotalTime(u.time.created_at, this._findHandledBy(s.id)[j + 1], this.state.steps[i + 1]);
                                     if (d) {
                                       if (d.days()) {
-                                        return `selama ${d.days()} hari ${d.hours()} jam ${d.minutes()} menit`;
+                                        return (
+                                          <div>
+                                            <i className="fa fa-check"></i> {d.days()} hari {d.hours()} jam {d.minutes()} menit
+                                          </div>
+                                        )
                                       } else if (d.hours()) {
-                                        return `selama ${d.hours()} jam ${d.minutes()} menit`;
+                                        return (
+                                          <div>
+                                            <i className="fa fa-check"></i> {d.hours()} jam {d.minutes()} menit
+                                          </div>
+                                        )
                                       } else if (d.minutes()) {
-                                        return `selama ${d.minutes()} menit`;
+                                        return (
+                                          <div>
+                                            <i className="fa fa-check"></i> {d.minutes()} menit
+                                          </div>
+                                        )
                                       } else {
-                                        return `selama beberapa detik`;
+                                        return (
+                                          <div>
+                                            <i className="fa fa-check"></i> selama beberapa detik
+                                          </div>
+                                        )
                                       }
-                                    } else return '-'
+                                    } else return '- menunggu -'
                                   }).call(this)}</span>
                                 </Item.Right>
                               </Item.Wrapper>
