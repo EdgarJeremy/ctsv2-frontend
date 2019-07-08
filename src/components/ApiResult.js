@@ -36,7 +36,7 @@ export default class ApiResult extends React.Component {
             </Table>
           </ModalBody>
           <ModalFooter>
-            <Button block color="danger">TUTUP</Button>
+            <Button block color="danger" onClick={this.props.onClose}>TUTUP</Button>
           </ModalFooter>
         </Modal>
       </div>
