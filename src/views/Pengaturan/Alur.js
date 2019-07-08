@@ -49,7 +49,8 @@ export default class Alur extends React.Component {
     return this.props.models.Step.collection({
       attributes: ['id', 'name', 'step', 'purpose_id'],
       where: { purpose_id },
-      include: [{ attributes: ['id', 'name', 'level', 'pending_user'], model: 'User' }]
+      include: [{ attributes: ['id', 'name', 'level', 'pending_user'], model: 'User' }],
+      order: [['step', 'asc']]
     }).then(data => {
       this.setState({
         steps: data.rows,
