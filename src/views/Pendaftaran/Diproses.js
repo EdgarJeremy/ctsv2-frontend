@@ -25,7 +25,8 @@ export default class Diproses extends React.Component {
       nik: '',
       name: '',
       form: {}
-    }
+    },
+    me: false
   }
 
   componentWillMount() {
@@ -125,7 +126,7 @@ export default class Diproses extends React.Component {
           $ne: null
         },
         user_id: {
-          $ne: null
+          [this.state.me ? '$eq' : '$ne']: this.state.me ? this.props._userdata.id : null
         },
         purpose_id: purpose_id
       },
@@ -243,7 +244,18 @@ export default class Diproses extends React.Component {
                               this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)
                             })
                           }}>Reset</Button>
-                        </div><br />
+                        </div>
+                        <div style={{ marginTop: 10 }}>
+                          <input defaultChecked={this.state.me} id="me" type="checkbox" onClick={(e) => {
+                            this.setState({
+                              me: e.target.checked
+                            }, () => {
+                              this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)
+                            });
+                          }} />{' '}
+                          <label htmlFor="me">Inbox</label>
+                        </div>
+                        <br />
                         <Table responsive striped>
                           <thead>
                             <tr>
