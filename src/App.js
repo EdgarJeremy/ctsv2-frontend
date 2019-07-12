@@ -20,11 +20,11 @@ import { Login } from './views/Pages';
 import Loadable from "react-loading-overlay";
 
 // import { renderRoutes } from 'react-router-config';
-
+import io from 'socket.io-client';
 import SiriusAdapter from '@edgarjeremy/sirius.adapter';
 import TVView from './components/TVView';
 
-const adapter = new SiriusAdapter('http://localhost', 1234, localStorage);
+const adapter = new SiriusAdapter(process.env.REACT_APP_API_HOST, process.env.REACT_APP_API_PORT, localStorage);
 
 class App extends Component {
 
@@ -35,17 +35,22 @@ class App extends Component {
     err: null
   }
 
-  async componentDidMount() {
-    try {
-      const models = await adapter.connect();
-      const authProvider = await adapter.getAuthProvider();
-      this.setState({ ready: true, models, authProvider });
-    } catch (e) {
-      this.setState({
-        ready: true,
-        err: e
-      });
-    }
+  socket = null;
+
+  componentDidMount() {
+    this.socket = io(process.env.REACT_APP_API_HOST + ':' + process.env.REACT_APP_API_PORT);
+    this.socket.on('connect', async () => {
+      try {
+        const models = await adapter.connect();
+        const authProvider = await adapter.getAuthProvider();
+        this.setState({ ready: true, models, authProvider });
+      } catch (e) {
+        this.setState({
+          ready: true,
+          err: e
+        });
+      }
+    });
   }
 
   render() {
@@ -55,7 +60,7 @@ class App extends Component {
         <Switch>
           <Route exact path="/login" name="Login Page" render={(p) => <Login {...p} models={models} authProvider={authProvider} />} />
           <Route path="/tv" name="TV View" render={(p) => <TVView {...p} models={models} authProvider={authProvider} />} />
-          <Route path="/" name="Home" render={(p) => <Full {...p} models={models} authProvider={authProvider} />} />
+          <Route path="/" name="Home" render={(p) => <Full {...p} models={models} authProvider={authProvider} socket={this.socket} />} />
         </Switch>
       </HashRouter> :
         <Loadable

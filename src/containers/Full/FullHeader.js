@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { DropdownItem, DropdownMenu, DropdownToggle, Nav } from 'reactstrap';
+import { DropdownItem, DropdownMenu, DropdownToggle, Nav, NavItem, NavLink, Badge } from 'reactstrap';
 import PropTypes from 'prop-types';
 
 import { AppAsideToggler, AppHeaderDropdown, AppNavbarBrand, AppSidebarToggler } from '@coreui/react';
@@ -37,11 +37,11 @@ class FullHeader extends Component {
         />
         <AppSidebarToggler className="d-md-down-none" display="lg" />
         <Nav className="ml-auto" navbar>
-          {/* <NavItem className="d-md-down-none">
-            <NavLink href="#"><i className="icon-bell"></i>
+          <NavItem className="d-md-down-none">
+            <NavLink href="#"><i className="icon-list"></i>
               <Badge pill color="danger">{this.props.pendingCount ? this.props.pendingCount : ""}</Badge>
             </NavLink>
-          </NavItem> */}
+          </NavItem>
           <AppHeaderDropdown direction="down">
             <DropdownToggle nav>
               <img src={'/favicon.png'} className="img-avatar" alt="admin@bootstrapmaster.com" />

@@ -28,7 +28,7 @@ import Loadable from "react-loading-overlay"
 import swal from "sweetalert";
 // import socket from "../../components/Socket";
 
-// import sfx from "../../components/Sfx";
+import sfx from "../../components/Sfx";
 import Chat from "../../components/Chat";
 
 class Full extends Component {
@@ -111,8 +111,8 @@ class Full extends Component {
     //   if (this.current_child.onSocketUpdate)
     //     this.current_child.onSocketUpdate(data);
     // this._getPendingCount();
-    // NotificationManager.info("Cek daftar masuk. Ada pendaftaran yang harus anda urus", "Pendaftaran baru");
-    // sfx.play();
+    NotificationManager.info("Cek daftar masuk. Ada pendaftaran yang harus anda urus", "Pendaftaran baru");
+    sfx.play();
   }
 
   _cekStatus() {
@@ -121,7 +121,16 @@ class Full extends Component {
     //   else this.setState({ userdata: data.data, ready: true });
     // });
     this.props.authProvider.get().then((user) => {
-      this.setState({ userdata: user, ready: true });
+      this.props.socket.off('NEW_TRACK');
+      this.props.socket.on('NEW_TRACK', (data) => {
+        if (data.user_id === user.id) {
+          this._onSocketUpdate(data);
+          this._getPendingCount();
+        }
+      });
+      this.setState({ userdata: user, ready: true }, () => {
+        this._getPendingCount();
+      });
     }).catch((err) => {
       this.props.history.replace('/login');
     });
@@ -132,6 +141,14 @@ class Full extends Component {
     //   if (data.status === true)
     //     this.setState({ pendingCount: data.data.total });
     // }).catch(this.props._apiReject);
+    this.props.models.Registration.collection({
+      attributes: ['id'],
+      where: {
+        user_id: this.state.userdata.id
+      }
+    }).then((d) => {
+      this.setState({ pendingCount: d.count });
+    });
   }
 
   componentDidUpdate(prevProps) {
@@ -142,7 +159,7 @@ class Full extends Component {
 
   _handleReject(e) {
     let msg = '';
-    if(e.errors) {
+    if (e.errors) {
       msg = e.errors.map((e) => e.msg).join('\n');
     } else {
       msg = e.message;
