@@ -29,6 +29,11 @@ function navigation(userdata) {
           icon: 'icon-pencil',
         },
         {
+          name: 'Inbox',
+          url: '/pendaftaran/masuk',
+          icon: 'icon-list',
+        },
+        {
           name: 'Diproses',
           url: '/pendaftaran/proses',
           icon: 'icon-refresh',

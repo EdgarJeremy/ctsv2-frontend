@@ -25,7 +25,8 @@ export default class Masuk extends React.Component {
       nik: '',
       name: '',
       form: {}
-    }
+    },
+    recap: []
   }
 
   componentWillMount() {
@@ -36,11 +37,19 @@ export default class Masuk extends React.Component {
     this.props.models.Purpose.collection({
       attributes: ['id', 'name', 'form']
     }).then((data) => {
-      this.setState({
-        ready: true,
-        purposes: data.rows
-      });
+      this._getRecap().then((recap) => {
+        console.log(recap);
+        this.setState({
+          ready: true,
+          purposes: data.rows,
+          recap: recap
+        });
+      }).catch(this.props._apiReject);
     }).catch(this.props._apiReject);
+  }
+
+  _getRecap() {
+    return this.props.models.Purpose.$http('registrations/inbox_recap', 'GET').then(({ data }) => data);
   }
 
   // _onSearch(e) {
@@ -210,7 +219,7 @@ export default class Masuk extends React.Component {
                   </InputGroup>
                   <hr />
                   {
-                    selected_purpose && (
+                    selected_purpose ? (
                       <div>
                         <h5><i className="fa fa-filter"></i> Filter</h5>
                         <div className="ctrl-table">
@@ -297,7 +306,26 @@ export default class Masuk extends React.Component {
                           </tbody>
                         </Table>
                       </div>
-                    )
+                    ) : (
+                        <div>
+                          <Table responsive striped>
+                            <thead>
+                              <tr>
+                                <th>Tujuan</th>
+                                <th>Total Pendaftaran Masuk</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {this.state.recap.map((r, i) => (
+                                <tr key={i}>
+                                  <td>{r.name}</td>
+                                  <td>{r.total}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                      )
                   }
                   {(this.state.total_page > 1) ?
                     <Pagination>

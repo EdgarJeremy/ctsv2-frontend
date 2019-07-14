@@ -45,7 +45,7 @@ class FullHeader extends Component {
           <AppHeaderDropdown direction="down">
             <DropdownToggle nav>
               <img src={'/favicon.png'} className="img-avatar" alt="admin@bootstrapmaster.com" />
-              <span className="d-md-down-none">{this.props.userdata.nama_pengguna} ({this.props.userdata.level})</span>
+              <span className="d-md-down-none">{this.props.userdata.name} ({this.props.userdata.level})</span>
             </DropdownToggle>
             <DropdownMenu right style={{ right: 'auto' }}>
               <DropdownItem header tag="div" className="text-center"><strong>Konfigurasi</strong></DropdownItem>
