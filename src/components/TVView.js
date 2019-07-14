@@ -54,7 +54,6 @@ export default class TVView extends React.Component {
               <th>#</th>
               <th>NAMA PEMOHON</th>
               <th>TUJUAN</th>
-              <th>PENGURUS SAAT INI</th>
               <th>STEP SAAT INI</th>
             </tr>
           </thead>
@@ -65,7 +64,6 @@ export default class TVView extends React.Component {
                   <td>{i + 1}</td>
                   <td>{t.name.toUpperCase()}</td>
                   <td>{t.purpose.name.toUpperCase()}</td>
-                  <td>{t.user ? t.user.name.toUpperCase() : 'LOKET PENYERAHAN'}</td>
                   <td><Badge color="success">{t.step ? t.step.name.toUpperCase() : 'SELESAI'}</Badge></td>
                 </tr>
               ))
