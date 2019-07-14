@@ -37,11 +37,11 @@ class FullHeader extends Component {
         />
         <AppSidebarToggler className="d-md-down-none" display="lg" />
         <Nav className="ml-auto" navbar>
-          <NavItem className="d-md-down-none">
+          {/* <NavItem className="d-md-down-none">
             <NavLink href="#"><i className="icon-list"></i>
               <Badge pill color="danger">{this.props.pendingCount ? this.props.pendingCount : ""}</Badge>
             </NavLink>
-          </NavItem>
+          </NavItem> */}
           <AppHeaderDropdown direction="down">
             <DropdownToggle nav>
               <img src={'/favicon.png'} className="img-avatar" alt="admin@bootstrapmaster.com" />

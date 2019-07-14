@@ -38,7 +38,6 @@ export default class Masuk extends React.Component {
       attributes: ['id', 'name', 'form']
     }).then((data) => {
       this._getRecap().then((recap) => {
-        console.log(recap);
         this.setState({
           ready: true,
           purposes: data.rows,
@@ -114,10 +113,13 @@ export default class Masuk extends React.Component {
         }).catch(this.props._apiReject);
       })
     } else {
-      this.setState({
-        registration: [],
-        selected_purpose: '',
-        filters: {}
+      this._getRecap().then((recap) => {
+        this.setState({
+          registration: [],
+          selected_purpose: '',
+          filters: {},
+          recap: recap
+        });
       });
     }
   }
