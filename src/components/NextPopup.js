@@ -15,7 +15,9 @@ export default class NextPopup extends React.Component {
     next_users: [],
     selected_next_user: '',
     pending_users: [],
-    selected_pending_user: ''
+    selected_pending_user: '',
+    done_card: false,
+    reason: ''
   }
 
   componentDidMount() {
@@ -146,12 +148,14 @@ export default class NextPopup extends React.Component {
     }).catch(this.props._apiReject);
   }
 
-  _onDone() {
+  _onDone(incomplete = false) {
     const { registration } = this.props;
     registration.update({
       ...registration.toJSON(),
       step_id: null,
-      user_id: null
+      user_id: null,
+      incomplete: incomplete,
+      reason: this.state.reason
     }).then((r) => {
       swal('Berhasil', 'Pendaftaran berhasil diselesaikan', 'success').then(() => {
         this.props.onSuccess();
@@ -168,9 +172,9 @@ export default class NextPopup extends React.Component {
             <div style={{
               padding: 15,
               textAlign: 'center'
-             }}>
+            }}>
               <h5>Proses sudah sampai pada step terakhir. Selesaikan?</h5><hr />
-              <Button onClick={this._onDone.bind(this)} color="success" block>SELESAIKAN</Button>
+              <Button onClick={() => this._onDone(false)} color="success" block>SELESAIKAN</Button>
             </div>
           ) : (
               <ModalBody>
@@ -198,33 +202,49 @@ export default class NextPopup extends React.Component {
                 <hr style={{ marginTop: 10, marginBottom: 10 }} />
                 <p style={{ textAlign: 'center', margin: 0 }}><b>ATAU</b></p>
                 <hr style={{ marginTop: 10, marginBottom: 10 }} />
-                <Card>
-                  <CardHeader style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => {
-                    this.setState({ next_card: false, pending_card: !this.state.pending_card });
-                  }}>
-                    <h5 style={{ margin: 0 }}>Tunda ke pengurus step saat ini</h5>
-                  </CardHeader>
-                  <Collapse isOpen={this.state.pending_card}>
-                    <CardBody>
-                      {this.state.pending_users.length ? (
-                        <div>
-                          <p>Tunda ke pengurus step: {this.state.pending_step.name}</p>
-                          <Input type="select" onChange={(e) => {
-                            this.setState({ selected_pending_user: e.target.value });
-                          }} value={this.state.selected_pending_user}>
-                            <option value=""></option>
-                            {this.state.pending_users.map((u, i) => (
-                              <option key={i} value={u.id}>{u.name}</option>
-                            ))}
-                          </Input><br />
-                          <Button disabled={!this.state.selected_pending_user} color="success" onClick={this._onPending.bind(this)} block><i className="fa fa-arrow-down"></i> TUNDA</Button>
-                        </div>
-                      ) : (
-                          <h6>Tidak ada pengurus dokumen pending yang ditugaskan di step ini</h6>
-                        )}
-                    </CardBody>
-                  </Collapse>
-                </Card>
+                {this.props._userdata.pending_user ? (
+                  <Card>
+                    <CardHeader style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => {
+                      this.setState({ next_card: false, done_card: !this.state.done_card });
+                    }}>
+                      <h5 style={{ margin: 0 }}>Selesaikan karena suatu alasan</h5>
+                    </CardHeader>
+                    <Collapse isOpen={this.state.done_card}>
+                      <CardBody>
+                        <Input type="textarea" placeholder="Alasan..." value={this.state.reason} onChange={(e) => this.setState({ reason: e.target.value })} />
+                        <Button onClick={() => this._onDone(true)} color="success" block>SELESAIKAN</Button>
+                      </CardBody>
+                    </Collapse>
+                  </Card>
+                ) : (
+                    <Card>
+                      <CardHeader style={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => {
+                        this.setState({ next_card: false, pending_card: !this.state.pending_card });
+                      }}>
+                        <h5 style={{ margin: 0 }}>Tunda ke pengurus step saat ini</h5>
+                      </CardHeader>
+                      <Collapse isOpen={this.state.pending_card}>
+                        <CardBody>
+                          {this.state.pending_users.length ? (
+                            <div>
+                              <p>Tunda ke pengurus step: {this.state.pending_step.name}</p>
+                              <Input type="select" onChange={(e) => {
+                                this.setState({ selected_pending_user: e.target.value });
+                              }} value={this.state.selected_pending_user}>
+                                <option value=""></option>
+                                {this.state.pending_users.map((u, i) => (
+                                  <option key={i} value={u.id}>{u.name}</option>
+                                ))}
+                              </Input><br />
+                              <Button disabled={!this.state.selected_pending_user} color="success" onClick={this._onPending.bind(this)} block><i className="fa fa-arrow-down"></i> TUNDA</Button>
+                            </div>
+                          ) : (
+                              <h6>Tidak ada pengurus dokumen pending yang ditugaskan di step ini</h6>
+                            )}
+                        </CardBody>
+                      </Collapse>
+                    </Card>
+                  )}
               </ModalBody>
             )
 

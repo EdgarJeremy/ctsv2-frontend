@@ -122,7 +122,7 @@ export default class Selesai extends React.Component {
   _fetchRegistrations(purpose_id) {
     const w = this._filterToWhereQuery();
     return this.props.models.Registration.collection({
-      attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id'],
+      attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id', 'incomplete', 'reason'],
       limit: this.state.limit,
       offset: this.state.offset,
       where: {
@@ -131,7 +131,7 @@ export default class Selesai extends React.Component {
         user_id: null,
         purpose_id: purpose_id,
         created_at: {
-          $between: [this.state.startDate, this.state.endDate]
+          $between: [this.state.startDate + ' 00:00:00', this.state.endDate + ' 23:59:59']
         }
       },
       include: [{
@@ -285,6 +285,8 @@ export default class Selesai extends React.Component {
                                   <th key={i}>{name.toUpperCase()}</th>
                                 ))
                               }
+                              <th>TIDAK RAMPUNG</th>
+                              <th>ALASAN</th>
                               <th>PILIHAN</th>
                             </tr>
                           </thead>
@@ -303,6 +305,8 @@ export default class Selesai extends React.Component {
                                       <td key={j}>{t.data[name]}</td>
                                     ))
                                   }
+                                  <td>{t.incomplete ? 'TIDAK RAMPUNG' : 'RAMPUNG'}</td>
+                                  <td>{t.reason}</td>
                                   <td>
                                     <button onClick={() => {
                                       this.setState({

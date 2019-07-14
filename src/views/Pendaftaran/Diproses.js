@@ -134,7 +134,7 @@ export default class Diproses extends React.Component {
         },
         purpose_id: purpose_id,
         created_at: {
-          $between: [this.state.startDate, this.state.endDate]
+          $between: [this.state.startDate + ' 00:00:00', this.state.endDate + ' 23:59:59']
         }
       },
       include: [{
@@ -191,6 +191,7 @@ export default class Diproses extends React.Component {
       startDate: selectionRange.startDate.format(moment.HTML5_FMT.DATE),
       endDate: selectionRange.endDate.format(moment.HTML5_FMT.DATE)
     }, () => {
+      console.log(this.state);
       this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
     });
   }
