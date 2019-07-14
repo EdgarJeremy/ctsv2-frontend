@@ -1,9 +1,12 @@
 import React from 'react';
 import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Table, Row, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import Loadable from "react-loading-overlay";
+import DateRangePicker from "react-bootstrap-daterangepicker";
+import moment from 'moment';
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
 import DetailPopup from '../../components/DetailPopup';
+import ReportPopup from '../../components/ReportPopup';
 
 export default class Selesai extends React.Component {
 
@@ -20,12 +23,15 @@ export default class Selesai extends React.Component {
     page: 1,
     openNext: false,
     openDetail: false,
+    openReport: false,
     selected_registration: null,
     filters: {
       nik: '',
       name: '',
       form: {}
-    }
+    },
+    startDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
+    endDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
   }
 
   componentWillMount() {
@@ -123,7 +129,10 @@ export default class Selesai extends React.Component {
         ...w,
         step_id: null,
         user_id: null,
-        purpose_id: purpose_id
+        purpose_id: purpose_id,
+        created_at: {
+          $between: [this.state.startDate, this.state.endDate]
+        }
       },
       include: [{
         model: 'Step',
@@ -174,6 +183,15 @@ export default class Selesai extends React.Component {
     });
   }
 
+  _handleDateRange(e, selectionRange) {
+    this.setState({
+      startDate: selectionRange.startDate.format(moment.HTML5_FMT.DATE),
+      endDate: selectionRange.endDate.format(moment.HTML5_FMT.DATE)
+    }, () => {
+      this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+    });
+  }
+
   render() {
     const selected_purpose = this.state.purposes[this.state.selected_purpose];
     let links = [];
@@ -207,11 +225,24 @@ export default class Selesai extends React.Component {
                     </Input>
                   </InputGroup>
                   <hr />
+                  <div>
+                    <Button color="success" onClick={() => {
+                      this.setState({ openReport: true });
+                    }}>Laporan ({this.state.selected_purpose ? this.state.purposes[this.state.selected_purpose].name : 'Semua'})</Button>
+                  </div><br />
                   {
                     selected_purpose && (
                       <div>
                         <h5><i className="fa fa-filter"></i> Filter</h5>
                         <div className="ctrl-table">
+                          <div className="ctrl-table-item">
+                            <span className="ctrl-table-label">Jangka waktu</span>
+                            <div>
+                              <DateRangePicker onApply={this._handleDateRange.bind(this)}>
+                                <button className="btn btn-outline-success"><i className="fa fa-calendar"></i> {this.state.startDate} s/d {this.state.endDate}</button>
+                              </DateRangePicker>
+                            </div>
+                          </div>
                           <div className="ctrl-table-item">
                             <Input placeholder="NIK Pemohon" type="number" value={this.state.filters.nik} name="nik" onChange={this._onChangeFilter.bind(this)} />
                           </div>
@@ -239,7 +270,8 @@ export default class Selesai extends React.Component {
                               this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)
                             })
                           }}>Reset</Button>
-                        </div><br />
+                        </div>
+                        <br />
                         <Table responsive striped>
                           <thead>
                             <tr>
@@ -313,6 +345,11 @@ export default class Selesai extends React.Component {
             {...this.props}
             onCancel={() => this.setState({ openDetail: false })}
             registration={this.state.selected_registration}
+          />}
+          {this.state.openReport && <ReportPopup
+            {...this.props}
+            purpose={this.state.purposes[this.state.selected_purpose]}
+            onCancel={() => this.setState({ openReport: false })}
           />}
         </div > :
         <Loadable
