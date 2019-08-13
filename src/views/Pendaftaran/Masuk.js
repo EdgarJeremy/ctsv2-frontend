@@ -48,7 +48,15 @@ export default class Masuk extends React.Component {
   }
 
   _getRecap() {
-    return this.props.models.Purpose.$http('registrations/inbox_recap', 'GET').then(({ data }) => data);
+    return this.props.models.Purpose.$http('registrations/inbox_recap', 'GET').then((res) => {
+      const accessToken = res.headers['x-access-token'];
+			const refreshToken = res.headers['x-refresh-token'];
+			if (accessToken && refreshToken) {
+				localStorage.setItem('accessToken', accessToken);
+				localStorage.setItem('refreshToken', refreshToken);
+			}
+      return res.data;
+    });
   }
 
   // _onSearch(e) {
