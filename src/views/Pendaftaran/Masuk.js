@@ -49,7 +49,7 @@ export default class Masuk extends React.Component {
   }
 
   _getRecap() {
-    return this.props.models.Purpose.$http('registrations/inbox_recap', 'GET').then((res) => {
+    return this.props.models.Purpose.$http('registrations/inbox_recap?t=' + new Date().getTime(), 'GET').then((res) => {
       const accessToken = res.headers['x-access-token'];
       const refreshToken = res.headers['x-refresh-token'];
       if (accessToken && refreshToken) {
