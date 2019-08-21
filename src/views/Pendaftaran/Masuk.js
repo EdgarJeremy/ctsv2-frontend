@@ -35,7 +35,8 @@ export default class Masuk extends React.Component {
 
   _init() {
     this.props.models.Purpose.collection({
-      attributes: ['id', 'name', 'form']
+      attributes: ['id', 'name', 'form'],
+      order: [['name', 'asc']]
     }).then((data) => {
       this._getRecap().then((recap) => {
         this.setState({
@@ -50,11 +51,11 @@ export default class Masuk extends React.Component {
   _getRecap() {
     return this.props.models.Purpose.$http('registrations/inbox_recap', 'GET').then((res) => {
       const accessToken = res.headers['x-access-token'];
-			const refreshToken = res.headers['x-refresh-token'];
-			if (accessToken && refreshToken) {
-				localStorage.setItem('accessToken', accessToken);
-				localStorage.setItem('refreshToken', refreshToken);
-			}
+      const refreshToken = res.headers['x-refresh-token'];
+      if (accessToken && refreshToken) {
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+      }
       return res.data;
     });
   }
@@ -328,7 +329,12 @@ export default class Masuk extends React.Component {
                             <tbody>
                               {this.state.recap.map((r, i) => (
                                 <tr key={i}>
-                                  <td>{r.name}</td>
+                                  <td><a href="#see-purpose" onClick={(e) => {
+                                    e.preventDefault();
+                                    this._onChangePurpose({
+                                      target: { value: String(i) }
+                                    });
+                                  }}>{r.name}</a></td>
                                   <td>{r.total}</td>
                                 </tr>
                               ))}
