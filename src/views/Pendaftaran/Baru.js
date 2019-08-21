@@ -51,7 +51,8 @@ export default class Baru extends React.Component {
           model: 'Api',
           attributes: ['id', 'name', 'url', 'return_values']
         }]
-      }]
+      }],
+      order: [['name', 'asc']]
     }).then((data) => {
       this.setState({
         ready: true,

@@ -39,7 +39,8 @@ export default class Diproses extends React.Component {
 
   _init() {
     this.props.models.Purpose.collection({
-      attributes: ['id', 'name', 'form']
+      attributes: ['id', 'name', 'form'],
+      order: [['name', 'asc']]
     }).then((data) => {
       this.setState({
         ready: true,
