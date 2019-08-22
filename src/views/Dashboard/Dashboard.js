@@ -35,6 +35,9 @@ class Dashboard extends Component {
       headers: {
         'x-access-token': accessToken,
         'x-refresh-token': refreshToken
+      },
+      params: {
+        user_id: this.props._userdata.id
       }
     }).then((res) => {
       const at = res.headers['x-access-token'];
