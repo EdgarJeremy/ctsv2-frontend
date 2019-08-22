@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Table } from 'reactstrap';
+import axios from 'axios';
 
 class Dashboard extends Component {
   constructor(props) {
@@ -28,12 +29,19 @@ class Dashboard extends Component {
   }
 
   _getAllRecap() {
-    return this.props.models.Purpose.$http('registrations/all_recap?t=' + new Date().getTime(), 'GET').then((res) => {
-      const accessToken = res.headers['x-access-token'];
-      const refreshToken = res.headers['x-refresh-token'];
-      if (accessToken && refreshToken) {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    return axios.get(process.env.REACT_APP_API_HOST + ':' + process.env.REACT_APP_API_PORT + '/api/registrations/inbox_recap', {
+      headers: {
+        'x-access-token': accessToken,
+        'x-refresh-token': refreshToken
+      }
+    }).then((res) => {
+      const at = res.headers['x-access-token'];
+      const rt = res.headers['x-refresh-token'];
+      if (at && rt) {
+        localStorage.setItem('accessToken', at);
+        localStorage.setItem('refreshToken', rt);
       }
       return res.data;
     });

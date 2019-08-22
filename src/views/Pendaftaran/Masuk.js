@@ -1,6 +1,7 @@
 import React from 'react';
 import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Table, Row, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import Loadable from "react-loading-overlay";
+import axios from 'axios';
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
 import DetailPopup from '../../components/DetailPopup';
@@ -49,12 +50,19 @@ export default class Masuk extends React.Component {
   }
 
   _getRecap() {
-    return this.props.models.Purpose.$http('registrations/inbox_recap?t=' + new Date().getTime(), 'GET').then((res) => {
-      const accessToken = res.headers['x-access-token'];
-      const refreshToken = res.headers['x-refresh-token'];
-      if (accessToken && refreshToken) {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    return axios.get(process.env.REACT_APP_API_HOST + ':' + process.env.REACT_APP_API_PORT + '/api/registrations/inbox_recap', {
+      headers: {
+        'x-access-token': accessToken,
+        'x-refresh-token': refreshToken
+      }
+    }).then((res) => {
+      const at = res.headers['x-access-token'];
+      const rt = res.headers['x-refresh-token'];
+      if (at && rt) {
+        localStorage.setItem('accessToken', at);
+        localStorage.setItem('refreshToken', rt);
       }
       return res.data;
     });
@@ -323,7 +331,7 @@ export default class Masuk extends React.Component {
                             <thead>
                               <tr>
                                 <th>Tujuan</th>
-                                <th>Total Pendaftaran Masuk</th>
+                                <th>Pendaftaran</th>
                               </tr>
                             </thead>
                             <tbody>
