@@ -31,7 +31,7 @@ class Dashboard extends Component {
   _getAllRecap() {
     const accessToken = localStorage.getItem('accessToken');
     const refreshToken = localStorage.getItem('refreshToken');
-    return axios.get(process.env.REACT_APP_API_HOST + ':' + process.env.REACT_APP_API_PORT + '/api/registrations/inbox_recap', {
+    return axios.get(process.env.REACT_APP_API_HOST + ':' + process.env.REACT_APP_API_PORT + '/api/registrations/all_recap', {
       headers: {
         'x-access-token': accessToken,
         'x-refresh-token': refreshToken
