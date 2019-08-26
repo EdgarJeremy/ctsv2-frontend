@@ -2,6 +2,7 @@ import React from 'react';
 import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Table, Row, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import Loadable from "react-loading-overlay";
 import axios from 'axios';
+import swal from 'sweetalert';
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
 import DetailPopup from '../../components/DetailPopup';
@@ -146,7 +147,6 @@ export default class Masuk extends React.Component {
 
   _fetchRegistrations(purpose_id) {
     const w = this._filterToWhereQuery();
-    console.log(w);
     return this.props.models.Registration.collection({
       attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id'],
       limit: this.state.limit,
@@ -321,7 +321,27 @@ export default class Masuk extends React.Component {
                                       })
                                     }} type="button" className="btn btn-outline-success">
                                       <i className="fa fa-mail-forward"></i>&nbsp;Proses
-                                                                </button>
+                                                                </button>{' '}
+                                    <button disabled={this.props._userdata.id !== t.user.id} onClick={() => {
+                                      swal({
+                                        title: "Anda yakin?",
+                                        text: `Anda akan menghapus pendaftaran ini dari sistem?`,
+                                        buttons: [
+                                          "Tidak",
+                                          "Ya"
+                                        ],
+                                        icon: "warning"
+                                      }).then((isConfirm) => {
+                                        if (isConfirm) {
+                                          t.delete().then(() => swal('Konfirmasi', 'Pendaftaran berhasil dihapus', 'success').then(() => this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)))
+                                            .catch((err) => {
+                                              swal('Error', err.messsage, 'error').then(this._initialize.bind(this));
+                                            });
+                                        }
+                                      });
+                                    }} type="button" className="btn btn-outline-danger">
+                                      <i className="fa fa-close"></i>&nbsp;Hapus
+                                    </button>
                                   </td>
                                 </tr>
                               ))
