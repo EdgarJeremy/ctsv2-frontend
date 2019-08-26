@@ -120,9 +120,9 @@ export default class Masuk extends React.Component {
         name: '',
         form: {}
       };
-      purpose.form.forEach((f => {
-        filters.form[f.name] = '';
-      }));
+      // purpose.form.forEach((f => {
+      //   filters.form[f.name] = '';
+      // }));
       this.setState({
         filters
       }, () => {
@@ -146,6 +146,7 @@ export default class Masuk extends React.Component {
 
   _fetchRegistrations(purpose_id) {
     const w = this._filterToWhereQuery();
+    console.log(w);
     return this.props.models.Registration.collection({
       attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id'],
       limit: this.state.limit,
@@ -253,7 +254,7 @@ export default class Masuk extends React.Component {
                           </div>
                           {
                             selected_purpose.form.map(({ name, type }, i) => (
-                              <div className="ctrl-table-item" key={i}>
+                              type !== 'file' && <div className="ctrl-table-item" key={i}>
                                 <Input placeholder={name} type={type} value={this.state.filters.form[name]} name={name} onChange={this._onChangeFilter.bind(this)} />
                               </div>
                             ))

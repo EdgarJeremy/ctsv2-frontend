@@ -59,7 +59,7 @@ class App extends Component {
       ready ? <HashRouter>
         <Switch>
           <Route exact path="/login" name="Login Page" render={(p) => <Login {...p} models={models} authProvider={authProvider} />} />
-          <Route path="/tv" name="TV View" render={(p) => <TVView {...p} models={models} authProvider={authProvider} />} />
+          <Route path="/tv" name="TV View" render={(p) => <TVView {...p} models={models} authProvider={authProvider} socket={this.socket} />} />
           <Route path="/" name="Home" render={(p) => <Full {...p} models={models} authProvider={authProvider} socket={this.socket} />} />
         </Switch>
       </HashRouter> :

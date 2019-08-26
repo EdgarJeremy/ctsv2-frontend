@@ -10226,17 +10226,12 @@ body {
   width: 100%;
   margin-bottom: 10px; }
   .ctrl-table .ctrl-table-item {
-    display: inline-block;
-    float: left;
     padding-right: 15px;
     margin-top: 7px; }
     .ctrl-table .ctrl-table-item .ctrl-table-label {
       font-weight: bolder;
       display: inline-block;
       margin-bottom: 6px; }
-    .ctrl-table .ctrl-table-item:not(:nth-child(1)) {
-      border-left: 1px dashed #b4b4b4;
-      padding-left: 15px; }
 
 footer {
   position: absolute;

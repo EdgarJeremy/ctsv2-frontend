@@ -11,6 +11,14 @@ export default class TVView extends React.Component {
   }
 
   componentDidMount() {
+    this.props.socket.off('NEW_REGISTRATION');
+    this.props.socket.on('NEW_REGISTRATION', (data) => {
+      this._fetchRegistration();
+    });
+    this.props.socket.off('NEW_TRACK');
+    this.props.socket.on('NEW_TRACK', (data) => {
+      this._fetchRegistration();
+    });
     this._fetchRegistration();
   }
 
@@ -61,7 +69,7 @@ export default class TVView extends React.Component {
             {
               this.state.registrations.map((t, i) => (
                 <tr key={i}>
-                  <td>{i + 1}</td>
+                  <td>{this.state.registrations.length - i}</td>
                   <td>{t.name.toUpperCase()}</td>
                   <td>{t.purpose.name.toUpperCase()}</td>
                   <td><Badge color="success">{t.step ? t.step.name.toUpperCase() : 'SELESAI'}</Badge></td>
