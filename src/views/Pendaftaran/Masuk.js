@@ -1,8 +1,10 @@
 import React from 'react';
 import { InputGroup, InputGroupAddon, Button, Input, Badge, Card, CardBody, CardHeader, Col, Table, Row, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import Loadable from "react-loading-overlay";
+import DateRangePicker from "react-bootstrap-daterangepicker";
 import axios from 'axios';
 import swal from 'sweetalert';
+import moment from 'moment';
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
 import DetailPopup from '../../components/DetailPopup';
@@ -28,7 +30,9 @@ export default class Masuk extends React.Component {
       name: '',
       form: {}
     },
-    recap: []
+    recap: [],
+    startDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
+    endDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
   }
 
   componentWillMount() {
@@ -115,7 +119,7 @@ export default class Masuk extends React.Component {
   _onChangePurpose(e) {
     const { value: idx } = e.target;
     if (idx) {
-      const purpose = this.state.purposes[idx];
+      // const purpose = this.state.purposes[idx];
       const filters = {
         nik: '',
         name: '',
@@ -157,7 +161,10 @@ export default class Masuk extends React.Component {
           $ne: null
         },
         user_id: this.props._userdata.id,
-        purpose_id: purpose_id
+        purpose_id: purpose_id,
+        created_at: {
+          $between: [this.state.startDate + ' 00:00:00', this.state.endDate + ' 23:59:59']
+        }
       },
       include: [{
         model: 'Step',
@@ -208,6 +215,16 @@ export default class Masuk extends React.Component {
     });
   }
 
+  _handleDateRange(e, selectionRange) {
+    this.setState({
+      startDate: selectionRange.startDate.format(moment.HTML5_FMT.DATE),
+      endDate: selectionRange.endDate.format(moment.HTML5_FMT.DATE)
+    }, () => {
+      console.log(this.state);
+      this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+    });
+  }
+
   render() {
     const selected_purpose = this.state.purposes[this.state.selected_purpose];
     let links = [];
@@ -246,6 +263,14 @@ export default class Masuk extends React.Component {
                       <div>
                         <h5><i className="fa fa-filter"></i> Filter</h5>
                         <div className="ctrl-table">
+                          <div className="ctrl-table-item">
+                            <span className="ctrl-table-label">Jangka waktu</span>
+                            <div>
+                              <DateRangePicker onApply={this._handleDateRange.bind(this)}>
+                                <button className="btn btn-outline-success"><i className="fa fa-calendar"></i> {this.state.startDate} s/d {this.state.endDate}</button>
+                              </DateRangePicker>
+                            </div>
+                          </div>
                           <div className="ctrl-table-item">
                             <Input placeholder="NIK Pemohon" type="number" value={this.state.filters.nik} name="nik" onChange={this._onChangeFilter.bind(this)} />
                           </div>
