@@ -3,7 +3,7 @@ import Loadable from "react-loading-overlay";
 import { Modal, ModalHeader, ModalBody, Collapse, ModalFooter, Button, Card, CardHeader, CardBody, Input } from "reactstrap";
 import swal from "sweetalert";
 
-export default class NextPopup extends React.Component {
+export default class NextPopupMulti extends React.Component {
 
   state = {
     ready: false,
@@ -25,7 +25,7 @@ export default class NextPopup extends React.Component {
   }
 
   _prepare() {
-    const { registration: { purpose_id, step: { step } } } = this.props;
+    const { purpose_id, step: { step } } = this.props.registrations[0];
     this.props.models.Step.collection({
       attributes: ['id'],
       where: {
@@ -46,7 +46,7 @@ export default class NextPopup extends React.Component {
   }
 
   _fetchStepData() {
-    const { registration: { purpose_id, step: { step } } } = this.props;
+    const { purpose_id, step: { step } } = this.props.registrations[0];
     // fetch next step
     this.props.models.Step.collection({
       attributes: ['name', 'step', 'description'],
@@ -66,7 +66,8 @@ export default class NextPopup extends React.Component {
       const step = data.rows[0];
       this.setState({
         next_step: step,
-        next_users: step.users
+        next_users: step.users,
+        selected_next_user: step.users[0].id
       });
     })
       // fetch current (for pending) step
@@ -96,7 +97,8 @@ export default class NextPopup extends React.Component {
           this.setState({
             ready: true,
             pending_step: step,
-            pending_users: step.users
+            pending_users: step.users,
+            selected_pending_user: step.users[0].id
           });
         } else {
           this.setState({
@@ -108,55 +110,67 @@ export default class NextPopup extends React.Component {
 
   _onContinue() {
     const { next_step, selected_next_user } = this.state;
-    const { registration } = this.props;
-    this.props.models.Track.create({
-      description: '',
-      step_id: next_step.id,
-      registration_id: registration.id,
-      user_id: selected_next_user
-    }).then((newTrack) => {
-      return registration.update({
-        ...registration.toJSON(),
+    const { registrations } = this.props;
+    const promises = [];
+    registrations.forEach((registration) => {
+      promises.push(this.props.models.Track.create({
+        description: '',
         step_id: next_step.id,
+        registration_id: registration.id,
         user_id: selected_next_user
-      }).then((r) => {
-        swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
-          this.props.onSuccess();
+      }).then((newTrack) => {
+        return registration.update({
+          ...registration.toJSON(),
+          step_id: next_step.id,
+          user_id: selected_next_user
         });
+      }));
+    });
+    Promise.all(promises).then((r) => {
+      swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
+        this.props.onSuccess();
       });
     }).catch(this.props._apiReject);
   }
 
   _onPending() {
     const { selected_pending_user } = this.state;
-    const { registration } = this.props;
-    this.props.models.Track.create({
-      description: '',
-      step_id: registration.step.id,
-      registration_id: registration.id,
-      user_id: selected_pending_user
-    }).then((newTrack) => {
-      return registration.update({
-        ...registration.toJSON(),
+    const { registrations } = this.props;
+    const promises = [];
+    registrations.forEach((registration) => {
+      promises.push(this.props.models.Track.create({
+        description: '',
         step_id: registration.step.id,
+        registration_id: registration.id,
         user_id: selected_pending_user
-      }).then((r) => {
-        swal('Berhasil', 'Pendaftaran berhasil ditunda', 'success').then(() => {
-          this.props.onSuccess();
+      }).then((newTrack) => {
+        return registration.update({
+          ...registration.toJSON(),
+          step_id: registration.step.id,
+          user_id: selected_pending_user
         });
+      }));
+    });
+    Promise.all(promises).then((r) => {
+      swal('Berhasil', 'Pendaftaran berhasil ditunda', 'success').then(() => {
+        this.props.onSuccess();
       });
     }).catch(this.props._apiReject);
   }
 
   _onDone(incomplete = false) {
-    const { registration } = this.props;
-    registration.update({
-      ...registration.toJSON(),
-      step_id: null,
-      user_id: null,
-      incomplete: incomplete,
-      reason: this.state.reason
-    }).then((r) => {
+    const { registrations } = this.props;
+    const promises = [];
+    registrations.forEach((registration) => {
+      promises.push(registration.update({
+        ...registration.toJSON(),
+        step_id: null,
+        user_id: null,
+        incomplete: incomplete,
+        reason: this.state.reason
+      }));
+    });
+    Promise.all(promises).then((r) => {
       swal('Berhasil', 'Pendaftaran berhasil diselesaikan', 'success').then(() => {
         this.props.onSuccess();
       });

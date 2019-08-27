@@ -5,9 +5,13 @@ import DateRangePicker from "react-bootstrap-daterangepicker";
 import axios from 'axios';
 import swal from 'sweetalert';
 import moment from 'moment';
+import CheckBox from 'rc-checkbox';
 import NextPopup from '../../components/NextPopup';
 import "bootstrap-daterangepicker/daterangepicker.css";
 import DetailPopup from '../../components/DetailPopup';
+
+import 'rc-checkbox/assets/index.css';
+import NextPopupMulti from '../../components/NextPopupMulti';
 
 export default class Masuk extends React.Component {
 
@@ -24,6 +28,7 @@ export default class Masuk extends React.Component {
     page: 1,
     openNext: false,
     selected_registration: null,
+    selected_registrations: [],
     openDetail: false,
     filters: {
       nik: '',
@@ -31,6 +36,7 @@ export default class Masuk extends React.Component {
       form: {}
     },
     recap: [],
+    openNextMulti: false,
     startDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
     endDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
   }
@@ -220,9 +226,25 @@ export default class Masuk extends React.Component {
       startDate: selectionRange.startDate.format(moment.HTML5_FMT.DATE),
       endDate: selectionRange.endDate.format(moment.HTML5_FMT.DATE)
     }, () => {
-      console.log(this.state);
       this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
     });
+  }
+
+  _onChooseRegistration(registration, checked) {
+    const { selected_registrations } = this.state;
+    if (checked) {
+      selected_registrations.push(registration);
+    } else {
+      let idx = -1;
+      selected_registrations.forEach((r, i) => {
+        if (r.id === registration.id) {
+          idx = i;
+        }
+      });
+      selected_registrations.splice(idx, 1);
+    }
+    console.log(selected_registrations);
+    this.setState({ selected_registrations });
   }
 
   render() {
@@ -302,6 +324,7 @@ export default class Masuk extends React.Component {
                         <Table responsive striped>
                           <thead>
                             <tr>
+                              <th></th>
                               <th>#</th>
                               <th>NAMA PEMOHON</th>
                               <th>NIK PEMOHON</th>
@@ -319,6 +342,16 @@ export default class Masuk extends React.Component {
                             {
                               this.state.registrations.map((t, i) => (
                                 <tr key={i}>
+                                  <td><CheckBox checked={(() => {
+                                    const { selected_registrations } = this.state;
+                                    let idx = -1;
+                                    selected_registrations.forEach((r, i) => {
+                                      if (r.id === t.id) {
+                                        idx = i;
+                                      }
+                                    });
+                                    return idx !== -1;
+                                  })()} onChange={(e) => this._onChooseRegistration(t, e.target.checked)} /></td>
                                   <td>{i + 1}</td>
                                   <td>{t.name.toUpperCase()}</td>
                                   <td>{t.nik}</td>
@@ -347,7 +380,7 @@ export default class Masuk extends React.Component {
                                     }} type="button" className="btn btn-outline-success">
                                       <i className="fa fa-mail-forward"></i>&nbsp;Proses
                                                                 </button>{' '}
-                                    <button disabled={this.props._userdata.id !== t.user.id} onClick={() => {
+                                    {this.props._userdata.level === 'Front Office' && <button disabled={this.props._userdata.id !== t.user.id} onClick={() => {
                                       swal({
                                         title: "Anda yakin?",
                                         text: `Anda akan menghapus pendaftaran ini dari sistem?`,
@@ -366,7 +399,7 @@ export default class Masuk extends React.Component {
                                       });
                                     }} type="button" className="btn btn-outline-danger">
                                       <i className="fa fa-close"></i>&nbsp;Hapus
-                                    </button>
+                                    </button>}
                                   </td>
                                 </tr>
                               ))
@@ -407,7 +440,11 @@ export default class Masuk extends React.Component {
                       <PaginationItem onClick={(this.state.page === this.state.total_page) ? undefined : () => this._setPage(this.state.page + 1)} disabled={this.state.page === this.state.total_page} ><PaginationLink next tag="button">Next</PaginationLink></PaginationItem>
                     </Pagination>
                     : ""}
-
+                  {this.state.selected_purpose && <button disabled={this.state.selected_registrations.length === 0} onClick={() => {
+                    this.setState({ openNextMulti: true });
+                  }} type="button" className="btn btn-outline-success">
+                    <i className="fa fa-mail-forward"></i>&nbsp;Proses yang dipilih
+                  </button>}
                 </CardBody>
               </Card>
             </Col>
@@ -420,6 +457,14 @@ export default class Masuk extends React.Component {
             }}
             onCancel={() => this.setState({ openNext: false })}
             registration={this.state.selected_registration} />}
+          {this.state.openNextMulti && <NextPopupMulti
+            {...this.props}
+            onSuccess={() => {
+              this.setState({ openNextMulti: false });
+              this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+            }}
+            onCancel={() => this.setState({ openNextMulti: false })}
+            registrations={this.state.selected_registrations} />}
           {this.state.openDetail && <DetailPopup
             {...this.props}
             onCancel={() => this.setState({ openDetail: false })}
