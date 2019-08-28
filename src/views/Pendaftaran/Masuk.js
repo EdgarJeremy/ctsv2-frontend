@@ -12,6 +12,7 @@ import DetailPopup from '../../components/DetailPopup';
 
 import 'rc-checkbox/assets/index.css';
 import NextPopupMulti from '../../components/NextPopupMulti';
+import CompleteRegistrationDataPopup from '../../components/CompleteRegistrationDataPopup';
 
 export default class Masuk extends React.Component {
 
@@ -39,6 +40,8 @@ export default class Masuk extends React.Component {
     openNextMulti: false,
     startDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
     endDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
+    openCompleteRegistration: false,
+    selected_complete_registration: null
   }
 
   componentWillMount() {
@@ -243,7 +246,6 @@ export default class Masuk extends React.Component {
       });
       selected_registrations.splice(idx, 1);
     }
-    console.log(selected_registrations);
     this.setState({ selected_registrations });
   }
 
@@ -380,6 +382,14 @@ export default class Masuk extends React.Component {
                                     }} type="button" className="btn btn-outline-success">
                                       <i className="fa fa-mail-forward"></i>&nbsp;Proses
                                                                 </button>{' '}
+                                    {this.props._userdata.level === 'Loket' && <button onClick={() => {
+                                      this.setState({
+                                        openCompleteRegistration: true,
+                                        selected_complete_registration: this.state.registrations[i]
+                                      })
+                                    }} type="button" className="btn btn-outline-warning">
+                                      <i className="fa fa-edit"></i>&nbsp;Lengkapi
+                                    </button>}
                                     {this.props._userdata.level === 'Front Office' && <button disabled={this.props._userdata.id !== t.user.id} onClick={() => {
                                       swal({
                                         title: "Anda yakin?",
@@ -469,6 +479,15 @@ export default class Masuk extends React.Component {
             {...this.props}
             onCancel={() => this.setState({ openDetail: false })}
             registration={this.state.selected_registration}
+          />}
+          {this.state.openCompleteRegistration && <CompleteRegistrationDataPopup
+            {...this.props}
+            onSuccess={() => {
+              this.setState({ openCompleteRegistration: false });
+              this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id);
+            }}
+            onCancel={() => this.setState({ openCompleteRegistration: false })}
+            registration={this.state.selected_complete_registration}
           />}
         </div > :
         <Loadable
