@@ -17,7 +17,10 @@ export default class NextPopup extends React.Component {
     pending_users: [],
     selected_pending_user: '',
     done_card: false,
-    reason: ''
+    reason: '',
+    continue_description: '',
+    pending_description: '',
+    current_track: null
   }
 
   componentDidMount() {
@@ -25,23 +28,32 @@ export default class NextPopup extends React.Component {
   }
 
   _prepare() {
-    const { registration: { purpose_id, step: { step } } } = this.props;
-    this.props.models.Step.collection({
+    const { registration: { id, purpose_id, step_id, step: { step } } } = this.props;
+    this.props.models.Track.collection({
       attributes: ['id'],
       where: {
-        purpose_id: purpose_id,
-        step: parseInt(step, 10) + 1
-      },
-      limit: 1
-    }).then((nextSteps) => {
-      if (nextSteps.count === 0) {
-        this.setState({
-          ready: true,
-          done: true
-        });
-      } else {
-        this._fetchStepData();
+        registration_id: id,
+        step_id: step_id
       }
+    }).then((res) => {
+      this.setState({ current_track: res.rows[0] });
+      this.props.models.Step.collection({
+        attributes: ['id'],
+        where: {
+          purpose_id: purpose_id,
+          step: parseInt(step, 10) + 1
+        },
+        limit: 1
+      }).then((nextSteps) => {
+        if (nextSteps.count === 0) {
+          this.setState({
+            ready: true,
+            done: true
+          });
+        } else {
+          this._fetchStepData();
+        }
+      });
     }).catch(this.props._apiReject);
   }
 
@@ -66,7 +78,8 @@ export default class NextPopup extends React.Component {
       const step = data.rows[0];
       this.setState({
         next_step: step,
-        next_users: step.users
+        next_users: step.users,
+        selected_next_user: step.users[0].id
       });
     })
       // fetch current (for pending) step
@@ -96,7 +109,8 @@ export default class NextPopup extends React.Component {
           this.setState({
             ready: true,
             pending_step: step,
-            pending_users: step.users
+            pending_users: step.users,
+            selected_pending_user: step.users[0].id
           });
         } else {
           this.setState({
@@ -107,42 +121,50 @@ export default class NextPopup extends React.Component {
   }
 
   _onContinue() {
-    const { next_step, selected_next_user } = this.state;
+    const { next_step, selected_next_user, continue_description } = this.state;
     const { registration } = this.props;
-    this.props.models.Track.create({
-      description: '',
-      step_id: next_step.id,
-      registration_id: registration.id,
-      user_id: selected_next_user
-    }).then((newTrack) => {
-      return registration.update({
-        ...registration.toJSON(),
+    this.state.current_track.update({
+      description: continue_description
+    }).then(() => {
+      this.props.models.Track.create({
+        description: '',
         step_id: next_step.id,
+        registration_id: registration.id,
         user_id: selected_next_user
-      }).then((r) => {
-        swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
-          this.props.onSuccess();
+      }).then((newTrack) => {
+        return registration.update({
+          ...registration.toJSON(),
+          step_id: next_step.id,
+          user_id: selected_next_user
+        }).then((r) => {
+          swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
+            this.props.onSuccess();
+          });
         });
-      });
+      })
     }).catch(this.props._apiReject);
   }
 
   _onPending() {
-    const { selected_pending_user } = this.state;
+    const { selected_pending_user, pending_description } = this.state;
     const { registration } = this.props;
-    this.props.models.Track.create({
-      description: '',
-      step_id: registration.step.id,
-      registration_id: registration.id,
-      user_id: selected_pending_user
-    }).then((newTrack) => {
-      return registration.update({
-        ...registration.toJSON(),
+    this.state.current_track.update({
+      description: pending_description
+    }).then(() => {
+      this.props.models.Track.create({
+        description: '',
         step_id: registration.step.id,
+        registration_id: registration.id,
         user_id: selected_pending_user
-      }).then((r) => {
-        swal('Berhasil', 'Pendaftaran berhasil ditunda', 'success').then(() => {
-          this.props.onSuccess();
+      }).then((newTrack) => {
+        return registration.update({
+          ...registration.toJSON(),
+          step_id: registration.step.id,
+          user_id: selected_pending_user
+        }).then((r) => {
+          swal('Berhasil', 'Pendaftaran berhasil ditunda', 'success').then(() => {
+            this.props.onSuccess();
+          });
         });
       });
     }).catch(this.props._apiReject);
@@ -194,6 +216,9 @@ export default class NextPopup extends React.Component {
                           <option key={i} value={u.id}>{u.name} - {u.level}</option>
                         ))}
                       </Input><br />
+                      <Input type="textarea" onChange={(e) => {
+                        this.setState({ continue_description: e.target.value });
+                      }} value={this.state.continue_description} placeholder="Catatan" /><br />
                       <Button disabled={!this.state.selected_next_user} color="success" onClick={this._onContinue.bind(this)} block><i className="fa fa-send"></i> KIRIM</Button>
                     </CardBody>
                   </Collapse>
@@ -234,6 +259,9 @@ export default class NextPopup extends React.Component {
                                   <option key={i} value={u.id}>{u.name}</option>
                                 ))}
                               </Input><br />
+                              <Input type="textarea" onChange={(e) => {
+                                this.setState({ pending_description: e.target.value });
+                              }} value={this.state.pending_description} placeholder="Catatan" /><br />
                               <Button disabled={!this.state.selected_pending_user} color="success" onClick={this._onPending.bind(this)} block><i className="fa fa-arrow-down"></i> TUNDA</Button>
                             </div>
                           ) : (
@@ -255,11 +283,12 @@ export default class NextPopup extends React.Component {
               spinner
               color="#000000"
               text="Menyiapkan.." />
-          )}
+          )
+        }
         <ModalFooter>
           <Button color="danger" onClick={this.props.onCancel} block>BATAL</Button>
         </ModalFooter>
-      </Modal>
+      </Modal >
     )
   }
 

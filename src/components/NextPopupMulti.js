@@ -17,7 +17,10 @@ export default class NextPopupMulti extends React.Component {
     pending_users: [],
     selected_pending_user: '',
     done_card: false,
-    reason: ''
+    reason: '',
+    continue_description: '',
+    pending_description: '',
+    current_track: null
   }
 
   componentDidMount() {
@@ -25,23 +28,32 @@ export default class NextPopupMulti extends React.Component {
   }
 
   _prepare() {
-    const { purpose_id, step: { step } } = this.props.registrations[0];
-    this.props.models.Step.collection({
+    const { id, purpose_id, step_id, step: { step } } = this.props.registrations[0];
+    this.props.models.Track.collection({
       attributes: ['id'],
       where: {
-        purpose_id: purpose_id,
-        step: parseInt(step, 10) + 1
-      },
-      limit: 1
-    }).then((nextSteps) => {
-      if (nextSteps.count === 0) {
-        this.setState({
-          ready: true,
-          done: true
-        });
-      } else {
-        this._fetchStepData();
+        registration_id: id,
+        step_id: step_id
       }
+    }).then((res) => {
+      this.setState({ current_track: res.rows[0] });
+      this.props.models.Step.collection({
+        attributes: ['id'],
+        where: {
+          purpose_id: purpose_id,
+          step: parseInt(step, 10) + 1
+        },
+        limit: 1
+      }).then((nextSteps) => {
+        if (nextSteps.count === 0) {
+          this.setState({
+            ready: true,
+            done: true
+          });
+        } else {
+          this._fetchStepData();
+        }
+      });
     }).catch(this.props._apiReject);
   }
 
@@ -109,7 +121,7 @@ export default class NextPopupMulti extends React.Component {
   }
 
   _onContinue() {
-    const { next_step, selected_next_user } = this.state;
+    const { next_step, selected_next_user, continue_description } = this.state;
     const { registrations } = this.props;
     const promises = [];
     registrations.forEach((registration) => {
@@ -126,15 +138,19 @@ export default class NextPopupMulti extends React.Component {
         });
       }));
     });
-    Promise.all(promises).then((r) => {
-      swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
-        this.props.onSuccess();
+    this.state.current_track.update({
+      description: continue_description
+    }).then(() => {
+      Promise.all(promises).then((r) => {
+        swal('Berhasil diproses', 'Pendaftaran berhasil terproses', 'success').then(() => {
+          this.props.onSuccess();
+        });
       });
     }).catch(this.props._apiReject);
   }
 
   _onPending() {
-    const { selected_pending_user } = this.state;
+    const { selected_pending_user, pending_description } = this.state;
     const { registrations } = this.props;
     const promises = [];
     registrations.forEach((registration) => {
@@ -151,9 +167,13 @@ export default class NextPopupMulti extends React.Component {
         });
       }));
     });
-    Promise.all(promises).then((r) => {
-      swal('Berhasil', 'Pendaftaran berhasil ditunda', 'success').then(() => {
-        this.props.onSuccess();
+    this.state.current_track.update({
+      description: pending_description
+    }).then(() => {
+      Promise.all(promises).then((r) => {
+        swal('Berhasil', 'Pendaftaran berhasil ditunda', 'success').then(() => {
+          this.props.onSuccess();
+        });
       });
     }).catch(this.props._apiReject);
   }
@@ -208,6 +228,9 @@ export default class NextPopupMulti extends React.Component {
                           <option key={i} value={u.id}>{u.name} - {u.level}</option>
                         ))}
                       </Input><br />
+                      <Input type="textarea" onChange={(e) => {
+                        this.setState({ continue_description: e.target.value });
+                      }} value={this.state.continue_description} placeholder="Catatan" /><br />
                       <Button disabled={!this.state.selected_next_user} color="success" onClick={this._onContinue.bind(this)} block><i className="fa fa-send"></i> KIRIM</Button>
                     </CardBody>
                   </Collapse>
@@ -248,6 +271,9 @@ export default class NextPopupMulti extends React.Component {
                                   <option key={i} value={u.id}>{u.name}</option>
                                 ))}
                               </Input><br />
+                              <Input type="textarea" onChange={(e) => {
+                                this.setState({ pending_description: e.target.value });
+                              }} value={this.state.pending_description} placeholder="Catatan" /><br />
                               <Button disabled={!this.state.selected_pending_user} color="success" onClick={this._onPending.bind(this)} block><i className="fa fa-arrow-down"></i> TUNDA</Button>
                             </div>
                           ) : (

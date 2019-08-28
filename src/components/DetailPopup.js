@@ -60,7 +60,8 @@ export default class DetailPopup extends React.Component {
         time: {
           created_at: t.created_at,
           updated_at: t.updated_at
-        }
+        },
+        description: t.description
       });
     });
     return users;
@@ -163,6 +164,7 @@ export default class DetailPopup extends React.Component {
                                 <Item.Left>
                                   <b className="track-user">{u.user.name.toUpperCase()}</b>
                                   <span className="track-sm">({u.user.level.toUpperCase()} - {u.user.pending_user ? 'PENDING' : 'REGULAR'})</span>
+                                  <span className="track-sm">P.S: {u.description ? u.description : '-'}</span>
                                 </Item.Left>
                                 <Item.Center size="sm" />
                                 <Item.Right>
