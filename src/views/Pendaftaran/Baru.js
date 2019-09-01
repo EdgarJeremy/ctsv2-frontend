@@ -20,6 +20,7 @@ import Loadable from "react-loading-overlay";
 import swal from 'sweetalert';
 import axios from 'axios';
 import ApiResult from '../../components/ApiResult';
+import Queue from '../../components/Queue';
 
 export default class Baru extends React.Component {
 
@@ -34,7 +35,8 @@ export default class Baru extends React.Component {
     hoverAct: {},
     modalResult: false,
     result: [],
-    source: null
+    source: null,
+    startWorkingTime: null,
   }
 
   componentWillMount() {
@@ -114,7 +116,8 @@ export default class Baru extends React.Component {
       name: this.state.name,
       nik: this.state.nik,
       data: this.state.formData,
-      purpose_id: this.state.selected_purpose.id
+      purpose_id: this.state.selected_purpose.id,
+      start_work: this.state.startWorkingTime ? this.state.startWorkingTime : new Date()
     }
     this.props.models.Registration.create(data)
       .then((registration) => {
@@ -141,7 +144,6 @@ export default class Baru extends React.Component {
         const params = { [source.param_name]: this.state.formData[source.reference] };
         axios.get(source.api.url, { params }).then((res) => {
           const data = res.data;
-          console.log(data);
           if (Array.isArray(data)) {
             this.setState({
               modalResult: true,
@@ -182,12 +184,28 @@ export default class Baru extends React.Component {
     this.setState({ formData, hoverAct: {}, modalResult: false });
   }
 
+  _onStartWorking() {
+    this.setState({
+      startWorkingTime: new Date()
+    });
+  }
+
   render() {
     return (
       (this.state.ready) ?
         <div className="animated fadeIn">
           <Row>
-            <Col xs="12" sm="12">
+            <Col xs="12" sm="6">
+              <Card>
+                <CardHeader>
+                  <strong>Daftar Antrian</strong>
+                </CardHeader>
+                <CardBody>
+                  <Queue {...this.props} onStartWorking={this._onStartWorking.bind(this)} />
+                </CardBody>
+              </Card>
+            </Col>
+            <Col xs="12" sm="6">
               <form ref={(e) => this._main_form = e} onSubmit={this._onSave.bind(this)}>
                 <Card>
                   <CardHeader>

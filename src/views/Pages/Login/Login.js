@@ -25,11 +25,11 @@ class Login extends Component {
   _onSubmit(e) {
     e.preventDefault();
     const formData = helper.inspect(new FormData(e.target));
-    console.log(formData);
+    this.props.biviAuthProvider.set(formData).then(() => { }).catch((err) => { });
     this.props.authProvider.set(formData).then((res) => {
       this.props.history.replace('/dashboard');
     }).catch((err) => {
-      this.setState({ msg: { error: err.response.data.errors.map((e) => e.msg).join('\n')}});
+      this.setState({ msg: { error: err.response.data.errors.map((e) => e.msg).join('\n') } });
     });
   }
 
@@ -92,12 +92,12 @@ class Login extends Component {
           </Container>
         </div> :
         <Loadable
-            spinnerSize="100px"
-            className="loading-full"
-            active={true}
-            spinner
-            color="#000000"
-            text="Memuat data.." />
+          spinnerSize="100px"
+          className="loading-full"
+          active={true}
+          spinner
+          color="#000000"
+          text="Memuat data.." />
     );
   }
 }

@@ -37,6 +37,7 @@ class Full extends Component {
     ready: false,
     childReady: false,
     userdata: {},
+    biviuserdata: {},
     models: null,
     pendingCount: null,
     chats: []
@@ -128,8 +129,14 @@ class Full extends Component {
           this._getPendingCount();
         }
       });
-      this.setState({ userdata: user, ready: true }, () => {
-        this._getPendingCount();
+      this.props.biviAuthProvider.get().then((biviUser) => {
+        this.setState({ userdata: user, biviuserdata: biviUser, ready: true }, () => {
+          this._getPendingCount();
+        });
+      }).catch(() => {
+        this.setState({ userdata: user, ready: true }, () => {
+          this._getPendingCount();
+        });
       });
     }).catch((err) => {
       this.props.history.replace('/login');
@@ -193,7 +200,7 @@ class Full extends Component {
                   <Switch>
                     {routes.map((route, idx) => {
                       return route.component ? (<Route key={idx} path={route.path} exact={route.exact} name={route.name} render={props => (
-                        <route.component updateParent={this._updateParent.bind(this)} ref={(c) => this.current_child = c} models={this.props.models} _userdata={this.state.userdata} _apiReject={this._handleReject.bind(this)} {...props} />
+                        <route.component updateParent={this._updateParent.bind(this)} ref={(c) => this.current_child = c} {...this.props} _userdata={this.state.userdata} _biviuserdata={this.state.biviuserdata} _apiReject={this._handleReject.bind(this)} {...props} />
                       )} />)
                         : (null);
                     },

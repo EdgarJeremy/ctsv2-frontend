@@ -24,7 +24,8 @@ import io from 'socket.io-client';
 import SiriusAdapter from '@edgarjeremy/sirius.adapter';
 import TVView from './components/TVView';
 
-const adapter = new SiriusAdapter(process.env.REACT_APP_API_HOST, process.env.REACT_APP_API_PORT, localStorage);
+const adapter = new SiriusAdapter(process.env.REACT_APP_API_HOST, process.env.REACT_APP_API_PORT, localStorage, 'cts');
+const biviAdapter = new SiriusAdapter('http://antriancapil.manadokota.go.id', 80, localStorage, 'bivi');
 
 class App extends Component {
 
@@ -32,18 +33,24 @@ class App extends Component {
     ready: false,
     models: null,
     authProvider: null,
+    biviModels: null,
+    biviAuthProvider: null,
     err: null
   }
 
   socket = null;
+  biviSocket = null;
 
   componentDidMount() {
     this.socket = io(process.env.REACT_APP_API_HOST + ':' + process.env.REACT_APP_API_PORT);
+    this.biviSocket = io('http://antriancapil.manadokota.go.id:80');
     this.socket.on('connect', async () => {
       try {
         const models = await adapter.connect();
         const authProvider = await adapter.getAuthProvider();
-        this.setState({ ready: true, models, authProvider });
+        const biviModels = await biviAdapter.connect();
+        const biviAuthProvider = await biviAdapter.getAuthProvider();
+        this.setState({ ready: true, models, authProvider, biviModels, biviAuthProvider });
       } catch (e) {
         this.setState({
           ready: true,
@@ -58,9 +65,9 @@ class App extends Component {
     return (
       ready ? <HashRouter>
         <Switch>
-          <Route exact path="/login" name="Login Page" render={(p) => <Login {...p} models={models} authProvider={authProvider} />} />
-          <Route path="/tv" name="TV View" render={(p) => <TVView {...p} models={models} authProvider={authProvider} socket={this.socket} />} />
-          <Route path="/" name="Home" render={(p) => <Full {...p} models={models} authProvider={authProvider} socket={this.socket} />} />
+          <Route exact path="/login" name="Login Page" render={(p) => <Login {...p} models={models} authProvider={authProvider} biviModels={this.state.biviModels} biviAuthProvider={this.state.biviAuthProvider} />} />
+          <Route path="/tv" name="TV View" render={(p) => <TVView {...p} models={models} authProvider={authProvider} biviModels={this.state.biviModels} biviAuthProvider={this.state.biviAuthProvider} socket={this.socket} biviSocket={this.biviSocket} />} />
+          <Route path="/" name="Home" render={(p) => <Full {...p} models={models} authProvider={authProvider} biviModels={this.state.biviModels} biviAuthProvider={this.state.biviAuthProvider} socket={this.socket} biviSocket={this.biviSocket} />} />
         </Switch>
       </HashRouter> :
         <Loadable
