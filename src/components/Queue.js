@@ -18,13 +18,12 @@ export default class Queue extends Component {
       type: ''
     },
     loading: false,
-    id: 0,
-    models: {}
+    id: 0
   }
 
   getQueues = (refresh = true) => {
-    const { Queue } = this.props.biviModels;
-    if (refresh) this.setState({ loading: true });
+    const { biviModels: { Queue } } = this.props;
+    if (refresh) this.setState({ loading: true })
     Queue.collection({
       limit: 15, offset: 0, include:
         [{ model: 'Purpose', attributes: ['name', 'id'] }],
@@ -38,9 +37,9 @@ export default class Queue extends Component {
   }
 
   componentDidMount = () => {
-    const { biviSocket } = this.props;
-    this.getQueues(true);
+    this.getQueues(true)
     moment.locale('id');
+    const { biviSocket } = this.props;
     biviSocket.on('UPDATE_LIST', () => this.getQueues(false));
     biviSocket.on('NEW_QUEUE', () => this.getQueues(false));
     biviSocket.on('QUEUE_CALLED', () => this.getQueues(false));
@@ -48,12 +47,11 @@ export default class Queue extends Component {
   }
 
   updateQueue = (q, id) => {
-    q.update({ called: id }).then(() => this.getQueues());
+    q.update({ called: id }).then(() => this.getQueues(false));
   }
 
-  updateStatus = q => {
-    this.props.onStartWorking();
-    q.update({ status: 'Datang' }).then(() => this.getQueues());
+  updateStatus = (q, status) => {
+    q.update({ status }).then(() => this.getQueues());
   }
 
   preview = id => this.setState({ id }, () => this.previewDocs.open());
@@ -62,14 +60,16 @@ export default class Queue extends Component {
     if (this.state.type === 'administrator') return (<Redirect to="/dashboard/main" />)
     return (
       <div>
-        {this.props._biviuserdata.id ? <div>
+        <div className="card-body">
+          <h5 className="m-0">Antrian</h5>
+          <hr />
           {Object.keys(this.state.queues.rows).length === 0 && !this.state.loading && <Card className="text-white bg-dark border-0 shadow-sm">
             <CardBody><h5 className="text-center m-0">Tidak ada antrian hari ini</h5></CardBody>
           </Card>}
-          {Object.keys(this.state.queues.rows).sort().map((time, i) => (
+          {!this.state.loading && Object.keys(this.state.queues.rows).sort().map((time, i) => (
             <Card className="my-2 bg-dark text-white border-0 shadow" key={i}>
-              <h5 className="m-0 p-2">{time}</h5>
-              <Table size="sm" responsive dark className="text-white" hover striped>
+              <CardBody><h5 className="m-0">{time}</h5></CardBody>
+              <Table size="sm" responsive={true} dark className="text-white" hover striped>
                 <thead>
                   <tr>
                     <th className="pl-3">No. antrian</th>
@@ -98,7 +98,7 @@ export default class Queue extends Component {
               </Table>
             </Card>
           ))}
-        </div> : <p>Pengguna {this.props._userdata.username} tidak terintegrasi dengan app antrian</p>}
+        </div>
         <PreviewDocuments ref={ref => this.previewDocs = ref} models={this.props.biviModels} id={this.state.id} />
       </div>
     )
@@ -114,13 +114,16 @@ const Tr = props => (
     <td>{props.data.nik}</td>
     <td>{props.data.phone}</td>
     <td>
-      <ButtonGroup>
+      <ButtonGroup size="sm">
         <Button onClick={() => props.previewDocuments(props.data.id)} size="sm" color="light">Lihat Dokumen</Button>
         {props.data.called === 0 &&
           <Button onClick={() => props.onClick(props.data, props.user.id)} color="primary" size="sm">Panggil</Button>
         }
         {props.data.called !== 0 && props.data.called === props.user.id &&
-          <Button onClick={() => props.updateStatus(props.data)} color="warning" size="sm">Datang</Button>
+          <div>
+            <Button color="danger" onClick={() => props.updateStatus(props.data, 'Tidak Datang')}>Tidak datang</Button>
+            <Button onClick={() => props.updateStatus(props.data, 'Datang')} color="warning" size="sm">Datang</Button>
+          </div>
         }
         {props.data.called !== 0 && props.data.called !== props.user.id &&
           <Button disabled size="sm" color="primary">Sudah Dipanggil</Button>
