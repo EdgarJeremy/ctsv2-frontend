@@ -344,7 +344,14 @@ export default class Masuk extends React.Component {
                             {
                               this.state.registrations.map((t, i) => (
                                 <tr key={i}>
-                                  <td><CheckBox checked={(() => {
+                                  <td><CheckBox disabled={(() => {
+                                    const { selected_registrations } = this.state;
+                                    if(selected_registrations.length) {
+                                      if(selected_registrations[0].step.id === t.step.id) {
+                                        return false;
+                                      } else return true;
+                                    } else return false;
+                                  })()} checked={(() => {
                                     const { selected_registrations } = this.state;
                                     let idx = -1;
                                     selected_registrations.forEach((r, i) => {
