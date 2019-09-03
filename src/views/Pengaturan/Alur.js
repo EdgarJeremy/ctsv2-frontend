@@ -31,7 +31,8 @@ export default class Alur extends React.Component {
 
   componentWillMount() {
     this.props.models.Purpose.collection({
-      attributes: ["id", "name"]
+      attributes: ["id", "name"],
+      order: [['name', 'asc']]
     })
       .then(data => {
         return this.setState({ purposes: data.rows });
