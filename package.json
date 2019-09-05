@@ -44,6 +44,7 @@
     "react-select": "^1.2.1",
     "react-step-component": "^1.0.7",
     "reactstrap": "^6.5.0",
+    "save-as": "^0.1.8",
     "simple-line-icons": "^2.4.1",
     "socket.io-client": "^2.1.0",
     "sweetalert": "^2.1.0",

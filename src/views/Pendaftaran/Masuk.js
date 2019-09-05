@@ -13,6 +13,7 @@ import DetailPopup from '../../components/DetailPopup';
 import 'rc-checkbox/assets/index.css';
 import NextPopupMulti from '../../components/NextPopupMulti';
 import CompleteRegistrationDataPopup from '../../components/CompleteRegistrationDataPopup';
+import ExportPopup from '../../components/ExportPopup';
 
 export default class Masuk extends React.Component {
 
@@ -41,7 +42,8 @@ export default class Masuk extends React.Component {
     startDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
     endDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
     openCompleteRegistration: false,
-    selected_complete_registration: null
+    selected_complete_registration: null,
+    openExport: false
   }
 
   componentWillMount() {
@@ -322,7 +324,10 @@ export default class Masuk extends React.Component {
                             }, () => {
                               this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)
                             })
-                          }}>Reset</Button>
+                          }}>Reset</Button>{' '}
+                          <Button color="primary" onClick={() => {
+                            this.setState({ openExport: true });
+                          }}><i className="fa fa-download"></i> Export CSV</Button>
                         </div><br />
                         <Table responsive striped>
                           <thead>
@@ -347,8 +352,8 @@ export default class Masuk extends React.Component {
                                 <tr key={i}>
                                   <td><CheckBox disabled={(() => {
                                     const { selected_registrations } = this.state;
-                                    if(selected_registrations.length) {
-                                      if(selected_registrations[0].step.id === t.step.id) {
+                                    if (selected_registrations.length) {
+                                      if (selected_registrations[0].step.id === t.step.id) {
                                         return false;
                                       } else return true;
                                     } else return false;
@@ -495,6 +500,14 @@ export default class Masuk extends React.Component {
             }}
             onCancel={() => this.setState({ openCompleteRegistration: false })}
             registration={this.state.selected_complete_registration}
+          />}
+          {this.state.openExport && <ExportPopup
+            {...this.props}
+            purpose={this.state.purposes[this.state.selected_purpose]}
+            onCancel={() => this.setState({ openExport: false })}
+            onSuccess={() => {
+              this.setState({ openExport: false });
+            }}
           />}
         </div > :
         <Loadable
