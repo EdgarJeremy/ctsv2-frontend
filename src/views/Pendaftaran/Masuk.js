@@ -190,6 +190,7 @@ export default class Masuk extends React.Component {
       this.setState({
         registrations: data.rows,
         total_page: Math.ceil(data.count / this.state.limit),
+        selected_registrations: []
       });
     });
   }
@@ -295,12 +296,6 @@ export default class Masuk extends React.Component {
                               </DateRangePicker>
                             </div>
                           </div>
-                          <div className="ctrl-table-item">
-                            <Input placeholder="NIK Pemohon" type="number" value={this.state.filters.nik} name="nik" onChange={this._onChangeFilter.bind(this)} />
-                          </div>
-                          <div className="ctrl-table-item">
-                            <Input placeholder="Nama Pemohon" value={this.state.filters.name} name="name" onChange={this._onChangeFilter.bind(this)} />
-                          </div>
                           {
                             selected_purpose.form.map(({ name, type }, i) => (
                               type !== 'file' && <div className="ctrl-table-item" key={i}>
@@ -308,6 +303,12 @@ export default class Masuk extends React.Component {
                               </div>
                             ))
                           }
+                          <div className="ctrl-table-item">
+                            <Input placeholder="NIK Pemohon" type="number" value={this.state.filters.nik} name="nik" onChange={this._onChangeFilter.bind(this)} />
+                          </div>
+                          <div className="ctrl-table-item">
+                            <Input placeholder="Nama Pemohon" value={this.state.filters.name} name="name" onChange={this._onChangeFilter.bind(this)} />
+                          </div>
                         </div>
                         <div className="">
                           <Button color="success" onClick={() => this._fetchRegistrations(this.state.purposes[this.state.selected_purpose].id)}>Terapkan</Button>{' '}
@@ -328,15 +329,15 @@ export default class Masuk extends React.Component {
                             <tr>
                               <th></th>
                               <th>#</th>
-                              <th>NAMA PEMOHON</th>
-                              <th>NIK PEMOHON</th>
-                              <th>PENGURUS SAAT INI</th>
-                              <th>STEP SAAT INI</th>
                               {
                                 selected_purpose.form.map(({ name }, i) => (
                                   <th key={i}>{name.toUpperCase()}</th>
                                 ))
                               }
+                              <th>NAMA PEMOHON</th>
+                              <th>NIK PEMOHON</th>
+                              <th>PENGURUS SAAT INI</th>
+                              <th>STEP SAAT INI</th>
                               <th>PILIHAN</th>
                             </tr>
                           </thead>
@@ -362,16 +363,15 @@ export default class Masuk extends React.Component {
                                     return idx !== -1;
                                   })()} onChange={(e) => this._onChooseRegistration(t, e.target.checked)} /></td>
                                   <td>{i + 1}</td>
-                                  <td>{t.name.toUpperCase()}</td>
-                                  <td>{t.nik}</td>
-                                  <td>{t.user.name}</td>
-                                  <td><Badge color="success">{t.step.name}</Badge></td>
-
                                   {
                                     selected_purpose.form.map(({ name }, j) => (
                                       <td key={j}>{t.data[name]}</td>
                                     ))
                                   }
+                                  <td>{t.name.toUpperCase()}</td>
+                                  <td>{t.nik}</td>
+                                  <td>{t.user.name}</td>
+                                  <td><Badge color="success">{t.step.name}</Badge></td>
                                   <td>
                                     <button onClick={() => {
                                       this.setState({
