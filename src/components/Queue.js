@@ -107,7 +107,7 @@ export default class Queue extends Component {
 
 const Tr = props => (
   <tr>
-    {/* <> */}
+    <div>
       <td className="pl-3">{props.data.queue_number}</td>
       <td>{props.data.name.toUpperCase()}</td>
       <td>{props.data.purpose.name}</td>
@@ -119,29 +119,29 @@ const Tr = props => (
           <Button onClick={() => props.previewDocuments(props.data.id)} id={`document${props.data.id}`} size="sm" color="light"><IoIosDocument /></Button>
           <UncontrolledTooltip placement="left-start" target={`document${props.data.id}`}>Dokumen {props.data.name}</UncontrolledTooltip>
           {props.data.called === 0 &&
-            <>
+            <div>
               <Button id={`call${props.data.id}`} onClick={() => props.onClick(props.data, props.user.id)} color="primary" size="sm"><IoIosClipboard /></Button>
               <UncontrolledTooltip placement="right" target={`call${props.data.id}`}>Panggil {props.data.name}</UncontrolledTooltip>
-            </>
+            </div>
           }
           {props.data.called !== 0 && props.data.called !== props.user.id &&
-            <>
+            <div>
               <Button disabled id={`called${props.data.id}`} size="sm" color="primary"><IoIosClipboard /></Button>
               <UncontrolledTooltip placement="right-end" target={`called${props.data.id}`}>Sudah dipanggil</UncontrolledTooltip>
-            </>
+            </div>
           }
         </ButtonGroup>&nbsp;&nbsp;
         {props.data.called !== 0 && props.data.called === props.user.id &&
-          <>
+          <div>
             <Button size="sm" id={`uncheck${props.data.id}`} className="rounded-pill" color="danger" onClick={() => props.updateStatus(props.data, 'Tidak Datang')}><IoMdClose /></Button>&nbsp;&nbsp;
             <UncontrolledTooltip placement="top" target={`uncheck${props.data.id}`}>Tidak Datang</UncontrolledTooltip>
             <Button size="sm" id={`check${props.data.id}`} className="rounded-pill" onClick={() => props.updateStatus(props.data, 'Datang')} color="warning" size="sm"><IoMdCheckmark /></Button>&nbsp;&nbsp;
             <UncontrolledTooltip placement="top" target={`check${props.data.id}`}>Datang</UncontrolledTooltip>
             <Button size="sm" id={`reset${props.data.id}`} className="rounded-pill" onClick={() => props.onClick(props.data, 0)} color="dark" size="sm"><IoIosRedo /></Button>
             <UncontrolledTooltip placement="top" target={`reset${props.data.id}`}>Reset</UncontrolledTooltip>
-          </>
+          </div>
         }
       </td>
-    {/* </> */}
+    </div>
   </tr>
 )
