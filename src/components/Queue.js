@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Button, Card, CardBody, ButtonGroup } from 'reactstrap';
+import { Table, Button, Card, CardBody, ButtonGroup, UncontrolledTooltip } from 'reactstrap';
 import { Redirect } from 'react-router-dom';
 import moment from 'moment';
 import _ from 'lodash';
@@ -28,7 +28,7 @@ export default class Queue extends Component {
       limit: 15, offset: 0, include:
         [{ model: 'Purpose', attributes: ['name', 'id'] }],
       // { model: 'Document', attributes: ['name', 'id', 'data'] }],
-      order: [['time', 'asc']],
+      order: [['time', 'asc'], ['id', 'asc']],
       where: { date: new Date(), status: 'Belum Datang' }
     }).then(queue => {
       const queues = _.groupBy(queue.rows, 'time');
@@ -107,28 +107,41 @@ export default class Queue extends Component {
 
 const Tr = props => (
   <tr>
-    <td className="pl-3">{props.data.queue_number}</td>
-    <td>{props.data.name.toUpperCase()}</td>
-    <td>{props.data.purpose.name}</td>
-    <td>{moment(props.data.date).format('DD MMMM YYYY')} - {props.data.time}</td>
-    <td>{props.data.nik}</td>
-    <td>{props.data.phone}</td>
-    <td>
-      <ButtonGroup size="sm">
-        <Button onClick={() => props.previewDocuments(props.data.id)} size="sm" color="light">Lihat Dokumen</Button>
-        {props.data.called === 0 &&
-          <Button onClick={() => props.onClick(props.data, props.user.id)} color="primary" size="sm">Panggil</Button>
-        }
+    <>
+      <td className="pl-3">{props.data.queue_number}</td>
+      <td>{props.data.name.toUpperCase()}</td>
+      <td>{props.data.purpose.name}</td>
+      <td>{moment(props.data.date).format('DD MMMM YYYY')} - {props.data.time}</td>
+      <td>{props.data.nik}</td>
+      <td>{props.data.phone}</td>
+      <td>
+        <ButtonGroup size="sm">
+          <Button onClick={() => props.previewDocuments(props.data.id)} id={`document${props.data.id}`} size="sm" color="light"><IoIosDocument /></Button>
+          <UncontrolledTooltip placement="left-start" target={`document${props.data.id}`}>Dokumen {props.data.name}</UncontrolledTooltip>
+          {props.data.called === 0 &&
+            <>
+              <Button id={`call${props.data.id}`} onClick={() => props.onClick(props.data, props.user.id)} color="primary" size="sm"><IoIosClipboard /></Button>
+              <UncontrolledTooltip placement="right" target={`call${props.data.id}`}>Panggil {props.data.name}</UncontrolledTooltip>
+            </>
+          }
+          {props.data.called !== 0 && props.data.called !== props.user.id &&
+            <>
+              <Button disabled id={`called${props.data.id}`} size="sm" color="primary"><IoIosClipboard /></Button>
+              <UncontrolledTooltip placement="right-end" target={`called${props.data.id}`}>Sudah dipanggil</UncontrolledTooltip>
+            </>
+          }
+        </ButtonGroup>&nbsp;&nbsp;
         {props.data.called !== 0 && props.data.called === props.user.id &&
-          <div>
-            <Button color="danger" onClick={() => props.updateStatus(props.data, 'Tidak Datang')}>Tidak datang</Button>
-            <Button onClick={() => props.updateStatus(props.data, 'Datang')} color="warning" size="sm">Datang</Button>
-          </div>
+          <>
+            <Button size="sm" id={`uncheck${props.data.id}`} className="rounded-pill" color="danger" onClick={() => props.updateStatus(props.data, 'Tidak Datang')}><IoMdClose /></Button>&nbsp;&nbsp;
+            <UncontrolledTooltip placement="top" target={`uncheck${props.data.id}`}>Tidak Datang</UncontrolledTooltip>
+            <Button size="sm" id={`check${props.data.id}`} className="rounded-pill" onClick={() => props.updateStatus(props.data, 'Datang')} color="warning" size="sm"><IoMdCheckmark /></Button>&nbsp;&nbsp;
+            <UncontrolledTooltip placement="top" target={`check${props.data.id}`}>Datang</UncontrolledTooltip>
+            <Button size="sm" id={`reset${props.data.id}`} className="rounded-pill" onClick={() => props.onClick(props.data, 0)} color="dark" size="sm"><IoIosRedo /></Button>
+            <UncontrolledTooltip placement="top" target={`reset${props.data.id}`}>Reset</UncontrolledTooltip>
+          </>
         }
-        {props.data.called !== 0 && props.data.called !== props.user.id &&
-          <Button disabled size="sm" color="primary">Sudah Dipanggil</Button>
-        }
-      </ButtonGroup>
-    </td>
+      </td>
+    </>
   </tr>
 )
