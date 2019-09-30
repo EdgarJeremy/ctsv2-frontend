@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Table, Button, Card, CardBody, ButtonGroup, UncontrolledTooltip } from 'reactstrap';
 import { Redirect } from 'react-router-dom';
+import { IoIosDocument, IoIosClipboard, IoIosRedo, IoMdClose, IoMdCheckmark } from 'react-icons/io'
 import moment from 'moment';
 import _ from 'lodash';
 import 'moment/locale/id';
