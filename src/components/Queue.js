@@ -107,7 +107,7 @@ export default class Queue extends Component {
 
 const Tr = props => (
   <tr>
-    <>
+    {/* <> */}
       <td className="pl-3">{props.data.queue_number}</td>
       <td>{props.data.name.toUpperCase()}</td>
       <td>{props.data.purpose.name}</td>
@@ -142,6 +142,6 @@ const Tr = props => (
           </>
         }
       </td>
-    </>
+    {/* </> */}
   </tr>
 )
