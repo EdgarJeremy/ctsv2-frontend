@@ -37,6 +37,7 @@ export default class Baru extends React.Component {
     result: [],
     source: null,
     startWorkingTime: null,
+    queue_id: null
   }
 
   componentWillMount() {
@@ -117,8 +118,10 @@ export default class Baru extends React.Component {
       nik: this.state.nik,
       data: this.state.formData,
       purpose_id: this.state.selected_purpose.id,
+      queue_id: this.state.queue_id,
       start_work: this.state.startWorkingTime ? this.state.startWorkingTime : new Date()
     }
+    console.log(data);
     this.props.models.Registration.create(data)
       .then((registration) => {
         e.target.reset();
@@ -201,7 +204,9 @@ export default class Baru extends React.Component {
                   <strong>Daftar Antrian</strong>
                 </CardHeader>
                 <CardBody>
-                  <Queue {...this.props} onStartWorking={this._onStartWorking.bind(this)} />
+                  <Queue {...this.props} selected={this.state.queue_id} onSelect={(queue_id) => {
+                    this.setState({ queue_id });
+                  }} onStartWorking={this._onStartWorking.bind(this)} />
                 </CardBody>
               </Card>
             </Col>
@@ -288,7 +293,7 @@ export default class Baru extends React.Component {
                   </CardBody>
                   <CardFooter>
                     <div className="form-actions">
-                      <Button type="submit" color="primary">Simpan</Button>
+                      <Button disabled={!this.state.queue_id} type="submit" color="primary">Simpan</Button>
                     </div>
                   </CardFooter>
                 </Card>

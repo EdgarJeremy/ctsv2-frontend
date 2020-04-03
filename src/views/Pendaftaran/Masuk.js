@@ -14,6 +14,7 @@ import 'rc-checkbox/assets/index.css';
 import NextPopupMulti from '../../components/NextPopupMulti';
 import CompleteRegistrationDataPopup from '../../components/CompleteRegistrationDataPopup';
 import ExportPopup from '../../components/ExportPopup';
+import PreviewDocuments from '../../components/PreviewDocuments';
 
 export default class Masuk extends React.Component {
 
@@ -43,7 +44,8 @@ export default class Masuk extends React.Component {
     endDate: moment(new Date()).format(moment.HTML5_FMT.DATE),
     openCompleteRegistration: false,
     selected_complete_registration: null,
-    openExport: false
+    openExport: false,
+    queue_id: null
   }
 
   componentWillMount() {
@@ -163,7 +165,7 @@ export default class Masuk extends React.Component {
   _fetchRegistrations(purpose_id) {
     const w = this._filterToWhereQuery();
     return this.props.models.Registration.collection({
-      attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id'],
+      attributes: ['id', 'name', 'nik', 'data', 'created_at', 'purpose_id', 'step_id', 'queue_id'],
       limit: this.state.limit,
       offset: this.state.offset,
       where: {
@@ -343,6 +345,7 @@ export default class Masuk extends React.Component {
                               <th>NIK PEMOHON</th>
                               <th>PENGURUS SAAT INI</th>
                               <th>STEP SAAT INI</th>
+                              <th>DOKUMEN</th>
                               <th>PILIHAN</th>
                             </tr>
                           </thead>
@@ -377,6 +380,16 @@ export default class Masuk extends React.Component {
                                   <td>{t.nik}</td>
                                   <td>{t.user.name}</td>
                                   <td><Badge color="success">{t.step.name}</Badge></td>
+                                  <td>
+                                    {t.queue_id && <button onClick={() => {
+                                      this.previewDocs.open();
+                                      this.setState({
+                                        queue_id: t.queue_id
+                                      });
+                                    }} type="button" className="btn btn-outline-primary">
+                                      <i className="fa fa-file"></i>&nbsp;Dokumen
+                                                                </button>}
+                                  </td>
                                   <td>
                                     <button onClick={() => {
                                       this.setState({
@@ -509,6 +522,7 @@ export default class Masuk extends React.Component {
               this.setState({ openExport: false });
             }}
           />}
+          <PreviewDocuments ref={ref => this.previewDocs = ref} models={this.props.biviModels} id={this.state.queue_id} />
         </div > :
         <Loadable
           spinnerSize="100px"

@@ -32,6 +32,11 @@ export default class Queue extends Component {
       order: [['time', 'asc'], ['id', 'asc']],
       where: { date: new Date(), status: 'Belum Datang' }
     }).then(queue => {
+      queue.rows.forEach((q) => {
+        if (q.called) {
+          this.props.onSelect(q.id);
+        }
+      });
       const queues = _.groupBy(queue.rows, 'time');
       this.setState({ queues: { count: queue.count, rows: queues }, loading: false })
     });
@@ -48,6 +53,8 @@ export default class Queue extends Component {
   }
 
   updateQueue = (q, id) => {
+    console.log(q.id);
+    this.props.onSelect(id ? q.id : null);
     q.update({ called: id }).then(() => this.getQueues(false));
   }
 
@@ -85,6 +92,7 @@ export default class Queue extends Component {
                 <tbody>
                   <React.Fragment key={i}>
                     {this.state.queues.rows[time].map((que, index) => (<Tr
+                      selected={this.props.selected}
                       updateStatus={this.updateStatus}
                       data={que} user={this.props._biviuserdata}
                       onClick={this.updateQueue}
@@ -121,7 +129,7 @@ const Tr = props => (
           <UncontrolledTooltip placement="left-start" target={`document${props.data.id}`}>Dokumen {props.data.name}</UncontrolledTooltip>
           {props.data.called === 0 &&
             <React.Fragment>
-              <Button id={`call${props.data.id}`} onClick={() => props.onClick(props.data, props.user.id)} color="primary" size="sm"><IoIosClipboard /></Button>
+              <Button disabled={props.selected !== null} id={`call${props.data.id}`} onClick={() => props.onClick(props.data, props.user.id)} color="primary" size="sm"><IoIosClipboard /></Button>
               <UncontrolledTooltip placement="right" target={`call${props.data.id}`}>Panggil {props.data.name}</UncontrolledTooltip>
             </React.Fragment>
           }
