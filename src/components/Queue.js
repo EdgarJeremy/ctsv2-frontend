@@ -32,11 +32,6 @@ export default class Queue extends Component {
       order: [['time', 'asc'], ['id', 'asc']],
       where: { date: new Date(), status: 'Belum Datang' }
     }).then(queue => {
-      queue.rows.forEach((q) => {
-        if (q.called) {
-          this.props.onSelect(q.id);
-        }
-      });
       const queues = _.groupBy(queue.rows, 'time');
       this.setState({ queues: { count: queue.count, rows: queues }, loading: false })
     });
@@ -53,8 +48,7 @@ export default class Queue extends Component {
   }
 
   updateQueue = (q, id) => {
-    console.log(q.id);
-    this.props.onSelect(id ? q.id : null);
+    this.props.onSelect(id ? q : null);
     q.update({ called: id }).then(() => this.getQueues(false));
   }
 
@@ -68,46 +62,53 @@ export default class Queue extends Component {
     if (this.state.type === 'administrator') return (<Redirect to="/dashboard/main" />)
     return (
       <div>
-        <div className="card-body">
-          <h5 className="m-0">Antrian</h5>
-          <hr />
-          {Object.keys(this.state.queues.rows).length === 0 && !this.state.loading && <Card className="text-white bg-dark border-0 shadow-sm">
-            <CardBody><h5 className="text-center m-0">Tidak ada antrian hari ini</h5></CardBody>
-          </Card>}
-          {!this.state.loading && Object.keys(this.state.queues.rows).sort().map((time, i) => (
-            <Card className="my-2 bg-dark text-white border-0 shadow" key={i}>
-              <CardBody><h5 className="m-0">{time}</h5></CardBody>
-              <Table size="sm" responsive={true} dark className="text-white" hover striped>
-                <thead>
-                  <tr>
-                    <th className="pl-3">No. antrian</th>
-                    <th>Nama</th>
-                    <th>Tujuan</th>
-                    <th>Tanggal - Jam</th>
-                    <th>NIK</th>
-                    <th>No. Telp</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <React.Fragment key={i}>
-                    {this.state.queues.rows[time].map((que, index) => (<Tr
-                      selected={this.props.selected}
-                      updateStatus={this.updateStatus}
-                      data={que} user={this.props._biviuserdata}
-                      onClick={this.updateQueue}
-                      q={time}
-                      rows={this.state.queues.rows}
-                      previewDocuments={this.preview}
-                      index={index}
-                      key={index} />
-                    ))}
-                  </React.Fragment>
-                </tbody>
-              </Table>
-            </Card>
-          ))}
-        </div>
+        {this.props._biviuserdata.id ? (
+          <div className="card-body">
+            <h5 className="m-0">Antrian (Logged in as : {this.props._biviuserdata.name})</h5>
+            <hr />
+            {Object.keys(this.state.queues.rows).length === 0 && !this.state.loading && <Card className="text-white bg-dark border-0 shadow-sm">
+              <CardBody><h5 className="text-center m-0">Tidak ada antrian hari ini</h5></CardBody>
+            </Card>}
+            {!this.state.loading && Object.keys(this.state.queues.rows).sort().map((time, i) => (
+              <Card className="my-2 bg-dark text-white border-0 shadow" key={i}>
+                <CardBody><h5 className="m-0">{time}</h5></CardBody>
+                <Table size="sm" responsive={true} dark className="text-white" hover striped>
+                  <thead>
+                    <tr>
+                      <th className="pl-3">No. antrian</th>
+                      <th>Nama</th>
+                      <th>Tujuan</th>
+                      <th>Tanggal - Jam</th>
+                      <th>NIK</th>
+                      <th>No. Telp</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <React.Fragment key={i}>
+                      {this.state.queues.rows[time].map((que, index) => (<Tr
+                        selected={this.props.selected}
+                        updateStatus={this.updateStatus}
+                        data={que} user={this.props._biviuserdata}
+                        onClick={this.updateQueue}
+                        q={time}
+                        rows={this.state.queues.rows}
+                        previewDocuments={this.preview}
+                        index={index}
+                        key={index} />
+                      ))}
+                    </React.Fragment>
+                  </tbody>
+                </Table>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="card-body">
+            <h5 className="m-0">Sesi user antrian tidak ditemukan. Silakan logout dan login kembali.</h5>
+          </div>
+        )}
+
         <PreviewDocuments ref={ref => this.previewDocs = ref} models={this.props.biviModels} id={this.state.id} />
       </div>
     )
@@ -133,7 +134,7 @@ const Tr = props => (
               <UncontrolledTooltip placement="right" target={`call${props.data.id}`}>Panggil {props.data.name}</UncontrolledTooltip>
             </React.Fragment>
           }
-          {props.data.called !== 0 && props.data.called !== props.user.id &&
+          {(props.data.called !== 0 && props.data.called !== props.user.id) &&
             <React.Fragment>
               <Button disabled id={`called${props.data.id}`} size="sm" color="primary"><IoIosClipboard /></Button>
               <UncontrolledTooltip placement="right-end" target={`called${props.data.id}`}>Sudah dipanggil</UncontrolledTooltip>

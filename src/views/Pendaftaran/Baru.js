@@ -121,7 +121,6 @@ export default class Baru extends React.Component {
       queue_id: this.state.queue_id,
       start_work: this.state.startWorkingTime ? this.state.startWorkingTime : new Date()
     }
-    console.log(data);
     this.props.models.Registration.create(data)
       .then((registration) => {
         e.target.reset();
@@ -132,6 +131,9 @@ export default class Baru extends React.Component {
           formData: {},
         }, () => {
           swal('Data Terinput', 'Data berhasil disimpan di sistem', 'success');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         });
       }).catch(this.props._apiReject);
   }
@@ -204,8 +206,12 @@ export default class Baru extends React.Component {
                   <strong>Daftar Antrian</strong>
                 </CardHeader>
                 <CardBody>
-                  <Queue {...this.props} selected={this.state.queue_id} onSelect={(queue_id) => {
-                    this.setState({ queue_id });
+                  <Queue {...this.props} selected={this.state.queue_id} onSelect={(queue) => {
+                    if (queue) {
+                      this.setState({ queue_id: queue.id, nik: queue.nik, name: queue.name });
+                    } else {
+                      this.setState({ queue_id: null, nik: '', name: '' });
+                    }
                   }} onStartWorking={this._onStartWorking.bind(this)} />
                 </CardBody>
               </Card>
@@ -253,38 +259,38 @@ export default class Baru extends React.Component {
                                   </Label>
                                 </div>
                               ) : (
-                                  <div>
-                                    <Label for={form.name} className={this.state.hoverAct[form.name] ? 'will-autocomplete' : ''}><b>{form.name}</b></Label>
-                                    {this._getSources(form.name).length > 0 ? (
-                                      <InputGroup>
-                                        <Input valid={this.state.hoverAct[form.name] ? true : false} accept="image/*" onChange={this._onChangeInput.bind(this)} name={form.name} type={form.type} placeholder={form.name} value={this.state.formData[form.name]} />
-                                        <InputGroupButtonDropdown addonType="append" isOpen={this.state.toggles[i]} toggle={() => {
-                                          const { toggles } = this.state;
-                                          toggles[i] = !toggles[i];
-                                          this.setState({
-                                            toggles,
-                                            hoverAct: {}
-                                          });
-                                        }}>
-                                          <DropdownToggle color="info" caret>
-                                            Sumber Eksternal
-                                          </DropdownToggle>
-                                          <DropdownMenu>
-                                            {this._getSources(form.name).map((s, i) => (
-                                              <DropdownItem onMouseEnter={() => {
-                                                this.setState({
-                                                  hoverAct: s.mapping
-                                                });
-                                              }} onMouseLeave={() => this.setState({ hoverAct: {} })} onClick={() => this._fetchSource(s)} key={i}>(#{i + 1}) {s.api.name}</DropdownItem>
-                                            ))}
-                                          </DropdownMenu>
-                                        </InputGroupButtonDropdown>
-                                      </InputGroup>
-                                    ) : (
-                                        <Input valid={this.state.hoverAct[form.name] ? true : false} accept="image/*" onChange={this._onChangeInput.bind(this)} name={form.name} type={form.type} placeholder={form.name} value={this.state.formData[form.name]} />
-                                      )}
-                                  </div>
-                                )}
+                                <div>
+                                  <Label for={form.name} className={this.state.hoverAct[form.name] ? 'will-autocomplete' : ''}><b>{form.name}</b></Label>
+                                  {this._getSources(form.name).length > 0 ? (
+                                    <InputGroup>
+                                      <Input valid={this.state.hoverAct[form.name] ? true : false} accept="image/*" onChange={this._onChangeInput.bind(this)} name={form.name} type={form.type} placeholder={form.name} value={this.state.formData[form.name]} />
+                                      <InputGroupButtonDropdown addonType="append" isOpen={this.state.toggles[i]} toggle={() => {
+                                        const { toggles } = this.state;
+                                        toggles[i] = !toggles[i];
+                                        this.setState({
+                                          toggles,
+                                          hoverAct: {}
+                                        });
+                                      }}>
+                                        <DropdownToggle color="info" caret>
+                                          Sumber Eksternal
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                          {this._getSources(form.name).map((s, i) => (
+                                            <DropdownItem onMouseEnter={() => {
+                                              this.setState({
+                                                hoverAct: s.mapping
+                                              });
+                                            }} onMouseLeave={() => this.setState({ hoverAct: {} })} onClick={() => this._fetchSource(s)} key={i}>(#{i + 1}) {s.api.name}</DropdownItem>
+                                          ))}
+                                        </DropdownMenu>
+                                      </InputGroupButtonDropdown>
+                                    </InputGroup>
+                                  ) : (
+                                    <Input valid={this.state.hoverAct[form.name] ? true : false} accept="image/*" onChange={this._onChangeInput.bind(this)} name={form.name} type={form.type} placeholder={form.name} value={this.state.formData[form.name]} />
+                                  )}
+                                </div>
+                              )}
                             </FormGroup>
                           ))
                         }
