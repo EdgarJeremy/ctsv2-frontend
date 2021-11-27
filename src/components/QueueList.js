@@ -5,6 +5,9 @@ import SiriusAdapter from '@edgarjeremy/sirius.adapter';
 import io from 'socket.io-client';
 import 'moment/locale/id'
 
+const integrated_source = localStorage.getItem('integrated_source');
+let [url, port = 80] = integrated_source.split(':');
+
 export default class QueueLists extends Component {
   state = {
     queues: {
@@ -15,8 +18,8 @@ export default class QueueLists extends Component {
   }
 
   componentDidMount = () => {
-    const biviAdapter = new SiriusAdapter('http://antriancapil.manadokota.go.id', 80, localStorage);
-    const socket = io(`http://antriancapil.manadokota.go.id:80`);
+    const biviAdapter = new SiriusAdapter(url, port, localStorage);
+    const socket = io(integrated_source);
     biviAdapter.connect().then((factories) => {
       moment.locale('id');
       this.getQueues(true, factories);

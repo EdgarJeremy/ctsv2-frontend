@@ -24,8 +24,11 @@ import io from 'socket.io-client';
 import SiriusAdapter from '@edgarjeremy/sirius.adapter';
 import TVView from './components/TVView';
 
+const integrated_source = localStorage.getItem('integrated_source');
+let [url, port = 80] = integrated_source.split(':');
+
 const adapter = new SiriusAdapter(process.env.REACT_APP_API_HOST, process.env.REACT_APP_API_PORT, localStorage, 'cts');
-const biviAdapter = new SiriusAdapter('http://antriancapil.manadokota.go.id', 80, localStorage, 'bivi');
+const biviAdapter = new SiriusAdapter(url, port, localStorage, 'bivi');
 
 class App extends Component {
 
@@ -43,7 +46,7 @@ class App extends Component {
 
   componentDidMount() {
     this.socket = io(process.env.REACT_APP_API_HOST + ':' + process.env.REACT_APP_API_PORT);
-    this.biviSocket = io('http://antriancapil.manadokota.go.id:80');
+    this.biviSocket = io(integrated_source);
     this.socket.on('connect', async () => {
       try {
         const models = await adapter.connect();
