@@ -21,7 +21,7 @@ function A() {
             }}>
               <option></option>
               <option value="http://antriancapil.manadokota.go.id">AntrianCapil</option>
-              <option value="http://36.67.25.4:1555">PAARSEL</option>
+              <option value="http://paarsel.manadokota.go.id">PAARSEL</option>
             </Input><br />
             <Button onClick={() => {
               localStorage.setItem('integrated_source', is);
